@@ -25,8 +25,7 @@ int main(void)
 
         Texture window_texture;
 
-        while (server->windows_used) asm("nop");
-        server->windows_used = true;
+        server_lock_windows(server);
         for (size_t wi = 0; wi < server->windows_count; ++wi) {
             Window* w = server->windows[wi];
 
@@ -44,7 +43,7 @@ int main(void)
 
             DrawTexture(window_texture, 0, 0, WHITE);
         }
-        server->windows_used = false;
+        server_unlock_windows(server);
 
         EndDrawing();
 

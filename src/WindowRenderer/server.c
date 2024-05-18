@@ -33,8 +33,7 @@ Server* server_create(void)
 
 static WindowRendererResponse server_close_window(Server* server, int window_id)
 {
-    while (server->windows_used) asm("nop");
-    server->windows_used = true;
+    server_lock_windows(server);
 
     WindowRendererResponse response = {
         .kind = WRRESP_ERROR,
@@ -64,7 +63,7 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
     if (!id_valid)
         response.error_kind = WRERROR_INVALID_WINID;
 
-    server->windows_used = false;
+    server_unlock_windows(server);
     return response;
 }
 
@@ -238,4 +237,15 @@ void server_destroy(Server* server)
         window_destroy(server->windows[i]);
     }
     free(server);
+}
+
+void server_lock_windows(Server *server)
+{
+    while (server->windows_used) asm("nop");
+    server->windows_used = true;
+}
+
+void server_unlock_windows(Server *server)
+{
+    server->windows_used = false;
 }

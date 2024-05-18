@@ -22,4 +22,7 @@ Server* server_create(void);
 int server_run(Server* server);
 void server_destroy(Server* server);
 
+void server_lock_windows(Server* server);
+void server_unlock_windows(Server* server);
+
 #endif // WR_SERVER_H_
