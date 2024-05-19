@@ -32,6 +32,64 @@ bool recv_response(int sockfd, WindowRendererResponse* response)
     return true;
 }
 
+bool is_response_valid(char const* command, WindowRendererResponseKind expected,
+                       WindowRendererResponse response)
+{
+    if (response.kind == WRRESP_ERROR && response.error_kind != WRERROR_OK) {
+        fprintf(stderr, "ERROR: failed to %s: error code %d\n", command,
+                response.error_kind);
+        return false;
+    }
+
+    if (response.kind != expected) {
+        fprintf(stderr, "ERROR: failed to %s: got unexpected response: response kind %d\n",
+                command, response.kind);
+        return false;
+    }
+
+    return true;
+}
+
+int create_window(int serverfd, char const* title, int width, int height)
+{
+    WindowRendererCommand command;
+    command.kind = WRCMD_CREATE_WINDOW;
+    command.window_width = width;
+    command.window_height = height;
+    memcpy(command.window_title, title, strlen(title));
+
+    if (!send_command(serverfd, command))
+        return -1;
+
+    WindowRendererResponse response;
+    if (!recv_response(serverfd, &response))
+        return -1;
+
+    if (!is_response_valid("create window", WRRESP_WINID, response))
+        return -1;
+
+    return response.window_id;
+}
+
+bool close_window(int serverfd, int id)
+{
+    WindowRendererCommand command;
+    command.kind = WRCMD_CLOSE_WINDOW;
+    command.window_id = id;
+
+    if (!send_command(serverfd, command))
+        return false;
+
+    WindowRendererResponse response;
+    if (!recv_response(serverfd, &response))
+        return false;
+
+    if (is_response_valid("close window", WRRESP_ERROR, response))
+        return false;
+
+    return true;
+}
+
 int main(void)
 {
     int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -50,38 +108,12 @@ int main(void)
         return 1;
     }
 
-    char const* window_title = "Hello, World";
-
-    WindowRendererCommand create_window_cmd;
-    create_window_cmd.kind = WRCMD_CREATE_WINDOW;
-    create_window_cmd.window_width = 400;
-    create_window_cmd.window_height = 400;
-    memcpy(create_window_cmd.window_title, window_title, strlen(window_title));
-
-    if (!send_command(sockfd, create_window_cmd))
-        return 1;
-
-    WindowRendererResponse create_window_resp;
-    if (!recv_response(sockfd, &create_window_resp))
-        return 1;
-    assert(create_window_resp.kind == WRRESP_WINID);
-
-    printf("Window ID: %d\n", create_window_resp.window_id);
+    int window_id = create_window(sockfd, "Hello, World", 400, 400);
+    if (window_id == -1) return 1;
 
     sleep(10);
 
-    WindowRendererCommand close_window_cmd;
-    close_window_cmd.kind = WRCMD_CLOSE_WINDOW;
-    close_window_cmd.window_id = create_window_resp.window_id;
-
-    if (!send_command(sockfd, close_window_cmd))
-        return 1;
-
-    WindowRendererResponse close_window_resp;
-    if (!recv_response(sockfd, &close_window_resp))
-        return 1;
-    assert(close_window_resp.kind == WRRESP_ERROR
-           && close_window_resp.error_kind == WRERROR_OK);
+    close_window(sockfd, window_id);
 
     close(sockfd);
 
