@@ -46,7 +46,7 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
         if (server->windows[i]->id == window_id) {
             id_valid = true;
 
-            if (window_destroy(server->windows[i]) == -1) {
+            if (!window_destroy(server->windows[i])) {
                 response.error_kind = WRERROR_CLOSE_FAILED;
                 break;
             }

@@ -66,7 +66,7 @@ Window* window_create(char const* title, int width, int height)
     return window;
 }
 
-int window_destroy(Window* window)
+bool window_destroy(Window* window)
 {
     close(window->pixels_shm_fd);
 
@@ -75,7 +75,7 @@ int window_destroy(Window* window)
                 window->id, strerror(errno));
         free(window->pixels_shm_name);
         free(window);
-        return -1;
+        return false;
     }
 
     if (shm_unlink(window->pixels_shm_name) == -1) {
@@ -83,10 +83,10 @@ int window_destroy(Window* window)
                 window->id, strerror(errno));
         free(window->pixels_shm_name);
         free(window);
-        return -1;
+        return false;
     }
 
     free(window->pixels_shm_name);
     free(window);
-    return 0;
+    return true;
 }
