@@ -3,11 +3,14 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/mman.h>
 #include <unistd.h>
+
 
 #include "WindowRenderer.h"
 
@@ -108,10 +111,55 @@ int main(void)
         return 1;
     }
 
+    int width = 400;
+    int height = 400;
+
     int window_id = create_window(sockfd, "Hello, World", 400, 400);
     if (window_id == -1) return 1;
 
+    char const* shm_name_prefix = "/WRWindow";
+    size_t shm_name_length = strlen(shm_name_prefix) + 5; // 5 = 4 digits + NULL
+
+    char* pixels_shm_name = malloc(shm_name_length);
+    memset(pixels_shm_name, 0, shm_name_length);
+    snprintf(pixels_shm_name, shm_name_length, "%s%d", shm_name_prefix, window_id);
+
+    int pixels_shm_fd = shm_open(pixels_shm_name, O_RDWR, 0666);
+    if (pixels_shm_fd == -1) {
+        fprintf(stderr, "ERROR: could not open shared memory for window of ID %d: %s\n",
+                window_id, strerror(errno));
+        return 1;
+    }
+
+    size_t pixels_shm_size = width * height * 4;
+
+    void* pixels = mmap(NULL, pixels_shm_size, PROT_READ | PROT_WRITE,
+                        MAP_SHARED, pixels_shm_fd, 0);
+    if (pixels == MAP_FAILED) {
+        fprintf(stderr, "ERROR: could not mmap shared memory for window of ID %d: %s\n",
+                window_id, strerror(errno));
+        return 1;
+    }
+
+    for (size_t i = 0; i < pixels_shm_size / sizeof(uint32_t); ++i) {
+        ((uint32_t*)pixels)[i] = 0xFF000000;
+    }
+
     sleep(10);
+
+    if (munmap(pixels, pixels_shm_size) == -1) {
+        fprintf(stderr, "ERROR: could not munmap shared memory for window of ID %d: %s\n",
+                window_id, strerror(errno));
+        return 1;
+    }
+
+    if (close(pixels_shm_fd) == -1) {
+        fprintf(stderr, "ERROR: could not close shared memory for window of ID %d: %s\n",
+                window_id, strerror(errno));
+        return 1;
+    }
+
+    free(pixels_shm_name);
 
     close_window(sockfd, window_id);
 
