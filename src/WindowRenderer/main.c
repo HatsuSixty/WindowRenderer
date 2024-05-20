@@ -23,7 +23,7 @@ int main(void)
         DrawFPS(0, 0);
 #endif
 
-        Texture window_texture;
+        Texture window_textures[server->windows_count];
 
         server_lock_windows(server);
         for (size_t wi = 0; wi < server->windows_count; ++wi) {
@@ -38,17 +38,19 @@ int main(void)
             };
 
             SetTraceLogLevel(LOG_WARNING);
-            window_texture = LoadTextureFromImage(image);
+            window_textures[wi] = LoadTextureFromImage(image);
             SetTraceLogLevel(LOG_INFO);
 
-            DrawTexture(window_texture, 0, 0, WHITE);
+            DrawTexture(window_textures[wi], 0, 0, WHITE);
         }
         server_unlock_windows(server);
 
         EndDrawing();
 
         SetTraceLogLevel(LOG_WARNING);
-        UnloadTexture(window_texture);
+        for (size_t i = 0; i < server->windows_count; ++i) {
+            UnloadTexture(window_textures[i]);
+        }
         SetTraceLogLevel(LOG_INFO);
     }
 
