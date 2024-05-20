@@ -26,22 +26,27 @@ Window* window_create(char const* title, int width, int height)
     char const* shm_name_prefix = "/WRWindow";
     size_t shm_name_length = strlen(shm_name_prefix) + 5; // 5 = 4 digits + NULL
 
-    char* shm_name = malloc(shm_name_length);
-    memset(shm_name, 0, shm_name_length);
-    snprintf(shm_name, shm_name_length, "%s%d", shm_name_prefix, window->id);
+    window->pixels_shm_name = malloc(shm_name_length);
+    memset(window->pixels_shm_name, 0, shm_name_length);
+    snprintf(window->pixels_shm_name, shm_name_length, "%s%d", shm_name_prefix, window->id);
 
     window->pixels_shm_size = width * height * PIXEL_COMPONENTS;
 
-    window->pixels_shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
+    window->pixels_shm_fd = shm_open(window->pixels_shm_name, O_CREAT | O_RDWR, 0666);
     if (window->pixels_shm_fd == -1) {
         fprintf(stderr, "ERROR: could not create shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
+        free(window->pixels_shm_name);
+        free(window);
         return NULL;
     }
 
     if (ftruncate(window->pixels_shm_fd, window->pixels_shm_size) == -1) {
         fprintf(stderr, "ERROR: could not truncate shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
+        free(window->pixels_shm_name);
+        close(window->pixels_shm_fd);
+        free(window);
         return NULL;
     }
 
@@ -50,38 +55,38 @@ Window* window_create(char const* title, int width, int height)
     if (window->pixels == MAP_FAILED) {
         fprintf(stderr, "ERROR: could not mmap shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
+        free(window->pixels_shm_name);
+        close(window->pixels_shm_fd);
+        free(window);
         return NULL;
     }
 
     memset(window->pixels, 0xFF, window->pixels_shm_size);
-
-    window->pixels_shm_name = shm_name;
 
     return window;
 }
 
 int window_destroy(Window* window)
 {
+    close(window->pixels_shm_fd);
+
     if (munmap(window->pixels, window->pixels_shm_size) == -1) {
         fprintf(stderr, "ERROR: could not munmap shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
-        return -1;
-    }
-
-    if (close(window->pixels_shm_fd) == -1) {
-        fprintf(stderr, "ERROR: could not close shared memory for window of ID %d: %s\n",
-                window->id, strerror(errno));
+        free(window->pixels_shm_name);
+        free(window);
         return -1;
     }
 
     if (shm_unlink(window->pixels_shm_name) == -1) {
         fprintf(stderr, "ERROR: could not unlink shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
+        free(window->pixels_shm_name);
+        free(window);
         return -1;
     }
 
     free(window->pixels_shm_name);
     free(window);
-
     return 0;
 }
