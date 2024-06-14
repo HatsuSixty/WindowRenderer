@@ -62,9 +62,10 @@ Window* window_create(char const* title, int width, int height)
 
 defer:
     if (failed) {
-        if (window->pixels_shm_name) free(window->pixels_shm_name);
+        munmap(window->pixels, window->pixels_shm_size);
+        free(window->pixels_shm_name);
         close(window->pixels_shm_fd);
-        if (window) free(window);
+        free(window);
         return NULL;
     }
     return window;

@@ -48,6 +48,7 @@ Window* window_create(int serverfd, char const* title, int width, int height)
 
 defer:
     if (failed) {
+        munmap(window->pixels, window->pixels_shm_size);
         if (window->pixels_shm_name) free(window->pixels_shm_name);
         if (window) free(window);
         close(window->pixels_shm_fd);
