@@ -12,6 +12,8 @@
 
 Window* window_create(int serverfd, char const* title, int width, int height)
 {
+    bool failed = false;
+
     Window* window = malloc(sizeof(*window));
     memset(window, 0, sizeof(*window));
 
@@ -29,9 +31,8 @@ Window* window_create(int serverfd, char const* title, int width, int height)
     if (window->pixels_shm_fd == -1) {
         fprintf(stderr, "ERROR: could not open shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
-        free(window->pixels_shm_name);
-        free(window);
-        return NULL;
+        failed = true;
+        goto defer;
     }
 
     window->pixels_shm_size = width * height * 4;
@@ -41,34 +42,40 @@ Window* window_create(int serverfd, char const* title, int width, int height)
     if (window->pixels == MAP_FAILED) {
         fprintf(stderr, "ERROR: could not mmap shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
-        free(window->pixels_shm_name);
-        close(window->pixels_shm_fd);
-        free(window);
-        return NULL;
+        failed = true;
+        goto defer;
     }
 
+defer:
+    if (failed) {
+        if (window->pixels_shm_name) free(window->pixels_shm_name);
+        if (window) free(window);
+        close(window->pixels_shm_fd);
+        return NULL;
+    }
     return window;
 }
 
 bool window_close(Window* window)
 {
+    bool result = true;
+
     close(window->pixels_shm_fd);
 
     if (munmap(window->pixels, window->pixels_shm_size) == -1) {
         fprintf(stderr, "ERROR: could not munmap shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
-        free(window->pixels_shm_name);
-        free(window);
-        return false;
+        result = false;
+        goto defer;
     }
 
     if (!server_close_window(window->serverfd, window->id)) {
-        free(window->pixels_shm_name);
-        free(window);
-        return false;
+        result = false;
+        goto defer;
     }
 
+defer:
     free(window->pixels_shm_name);
     free(window);
-    return true;
+    return result;
 }
