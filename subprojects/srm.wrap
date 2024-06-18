@@ -1,0 +1,9 @@
+[wrap-git]
+url = https://github.com/CuarzoSoftware/SRM.git
+revision = v0.5.7-1
+depth = 1
+
+diff_files = srm-meson-build.patch
+
+[provide]
+srm = srm_dep

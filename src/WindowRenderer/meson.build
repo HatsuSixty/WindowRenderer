@@ -8,6 +8,7 @@ executable('WindowRenderer', [
   'window.c',
 ], dependencies : [
   dependency('raylib'),
+  dependency('srm'),
   cc.find_library('pthread'),
 ], include_directories : [
   window_renderer_inc,

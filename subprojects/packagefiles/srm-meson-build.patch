@@ -1,0 +1,74 @@
+From 27f7ecf426b32112b0529e3e4836ee261bd8cb8c Mon Sep 17 00:00:00 2001
+From: HatsuSixty <hatsunotsus@gmail.com>
+Date: Tue, 18 Jun 2024 17:07:02 -0300
+Subject: [PATCH] meson.build
+
+---
+ meson.build                                | 12 ++++++++++++
+ src/meson_options.txt => meson_options.txt |  0
+ src/meson.build                            | 21 ++++-----------------
+ 3 files changed, 16 insertions(+), 17 deletions(-)
+ create mode 100644 meson.build
+ rename src/meson_options.txt => meson_options.txt (100%)
+
+diff --git a/meson.build b/meson.build
+new file mode 100644
+index 0000000..b4d912c
+--- /dev/null
++++ b/meson.build
+@@ -0,0 +1,12 @@
++project(
++    'SRM',
++    'c',
++    version : run_command('cat', './VERSION', check : false).stdout(),
++    meson_version: '>= 0.59.0',
++    default_options: [
++        'warning_level=2',
++        'buildtype=release'
++    ]
++)
++
++subdir('src')
+diff --git a/src/meson_options.txt b/meson_options.txt
+similarity index 100%
+rename from src/meson_options.txt
+rename to meson_options.txt
+diff --git a/src/meson.build b/src/meson.build
+index 3edf234..9cc2242 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -1,14 +1,3 @@
+-project(
+-    'SRM',
+-    'c',
+-    version : run_command('cat', '../VERSION', check : false).stdout(),
+-    meson_version: '>= 0.59.0',
+-    default_options: [
+-        'warning_level=2',
+-        'buildtype=release'
+-    ]
+-)
+-
+ version_major = meson.project_version().split('.')[0]
+ version_minor = meson.project_version().split('.')[1]
+ version_patch = meson.project_version().split('.')[2]
+@@ -101,12 +90,10 @@ pkg.generate(
+     subdirs: ['SRM'],
+     filebase: 'SRM')
+ 
+-if get_option('build_examples') or get_option('build_tests')
+-    srm_dep = declare_dependency(
+-        dependencies: [],
+-        include_directories : include_paths,
+-        link_with : SRM)
+-endif
++srm_dep = declare_dependency(
++    dependencies: [],
++    include_directories : include_paths,
++    link_with : SRM)
+ 
+ if get_option('build_examples')
+     libinput_dep = dependency('libinput')
+-- 
+2.45.2
+
