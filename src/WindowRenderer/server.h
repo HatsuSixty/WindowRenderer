@@ -13,7 +13,7 @@ typedef struct {
     int socket;
     pthread_t listener_thread;
 
-    bool windows_used;
+    pthread_mutex_t windows_mutex;
     Window* windows[MAX_WINDOWS];
     size_t windows_count;
 } Server;

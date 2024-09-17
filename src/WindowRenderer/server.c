@@ -28,6 +28,8 @@ Server* server_create(void)
     Server* server = malloc(sizeof(*server));
     memset(server, 0, sizeof(*server));
 
+    pthread_mutex_init(&server->windows_mutex, NULL);
+
     return server;
 }
 
@@ -38,6 +40,8 @@ void server_destroy(Server* server)
     for (size_t i = 0; i < server->windows_count; ++i) {
         window_destroy(server->windows[i]);
     }
+
+    pthread_mutex_destroy(&server->windows_mutex);
 
     free(server);
 }
@@ -272,11 +276,10 @@ bool server_run(Server* server)
 
 void server_lock_windows(Server *server)
 {
-    while (server->windows_used) asm("nop");
-    server->windows_used = true;
+    pthread_mutex_lock(&server->windows_mutex);
 }
 
 void server_unlock_windows(Server *server)
 {
-    server->windows_used = false;
+    pthread_mutex_unlock(&server->windows_mutex);
 }
