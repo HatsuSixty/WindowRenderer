@@ -31,6 +31,17 @@ Server* server_create(void)
     return server;
 }
 
+void server_destroy(Server* server)
+{
+    close(server->socket);
+
+    for (size_t i = 0; i < server->windows_count; ++i) {
+        window_destroy(server->windows[i]);
+    }
+
+    free(server);
+}
+
 static WindowRendererResponse server_create_window(Server* server, 
                                                    char const* title, int width, int height)
 {
@@ -257,17 +268,6 @@ bool server_run(Server* server)
     }
 
     return true;
-}
-
-void server_destroy(Server* server)
-{
-    close(server->socket);
-
-    for (size_t i = 0; i < server->windows_count; ++i) {
-        window_destroy(server->windows[i]);
-    }
-
-    free(server);
 }
 
 void server_lock_windows(Server *server)
