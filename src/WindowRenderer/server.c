@@ -194,16 +194,21 @@ exit:
     return NULL;
 }
 
-int server_run(Server* server)
+bool server_run(Server* server)
 {
     if (file_exists(SOCKET_PATH)) {
         if (unlink(SOCKET_PATH) != 0) {
-            fprintf(stderr, "ERROR: could not delete `%s`\n", SOCKET_PATH);
-            return -1;
+            fprintf(stderr, "ERROR: could not delete `%s`: %s\n", 
+                    SOCKET_PATH, strerror(errno));
+            return false;
         }
     }
 
     server->socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server->socket == -1) {
+        fprintf(stderr, "ERROR: could not create socket: %s\n", strerror(errno));
+        return false;
+    }
 
     struct sockaddr_un server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -216,26 +221,31 @@ int server_run(Server* server)
 
     int bind_result = bind(server->socket, (struct sockaddr*)&server_addr,
                            sizeof(server_addr));
-    if (bind_result < 0) {
-        fprintf(stderr, "ERROR: could not bind to socket: %s", strerror(errno));
-        return -1;
+    if (bind_result == -1) {
+        fprintf(stderr, "ERROR: could not bind socket: %s\n", strerror(errno));
+        close(server->socket);
+        return false;
     }
 
     int status = pthread_create(&server->listener_thread, NULL,
                                 (void* (*)(void*)) & server_listener, server);
     if (status != 0) {
         fprintf(stderr, "ERROR: could not create listener thread\n");
-        return -1;
+        close(server->socket);
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 void server_destroy(Server* server)
 {
+    close(server->socket);
+
     for (size_t i = 0; i < server->windows_count; ++i) {
         window_destroy(server->windows[i]);
     }
+
     free(server);
 }
 

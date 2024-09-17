@@ -19,7 +19,7 @@ typedef struct {
 } Server;
 
 Server* server_create(void);
-int server_run(Server* server);
+bool server_run(Server* server);
 void server_destroy(Server* server);
 
 void server_lock_windows(Server* server);

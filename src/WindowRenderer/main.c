@@ -9,7 +9,7 @@
 int main(void)
 {
     Server* server = server_create();
-    if (server_run(server) < 0) {
+    if (server_run(server) == -1) {
         return 1;
     }
 
@@ -26,8 +26,8 @@ int main(void)
         Texture window_textures[server->windows_count];
 
         server_lock_windows(server);
-        for (size_t wi = 0; wi < server->windows_count; ++wi) {
-            Window* w = server->windows[wi];
+        for (size_t i = 0; i < server->windows_count; ++i) {
+            Window* w = server->windows[i];
 
             Image image = {
                 .data = w->pixels,
@@ -38,10 +38,10 @@ int main(void)
             };
 
             SetTraceLogLevel(LOG_WARNING);
-            window_textures[wi] = LoadTextureFromImage(image);
+            window_textures[i] = LoadTextureFromImage(image);
             SetTraceLogLevel(LOG_INFO);
 
-            DrawTexture(window_textures[wi], 0, 0, WHITE);
+            DrawTexture(window_textures[i], 0, 0, WHITE);
         }
         server_unlock_windows(server);
 
