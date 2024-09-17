@@ -31,6 +31,33 @@ Server* server_create(void)
     return server;
 }
 
+static WindowRendererResponse server_create_window(Server* server, 
+                                                   char const* title, int width, int height)
+{
+    server_lock_windows(server);
+    
+    WindowRendererResponse response = {
+        .kind = WRRESP_ERROR,
+        .error_kind = WRERROR_OK,
+    };
+
+    Window* window = window_create(title, width, height);
+
+    if (window != NULL) {
+        server->windows[server->windows_count++] = window;
+        response = (WindowRendererResponse) {
+            .kind = WRRESP_WINID,
+            .window_id = window->id,
+        };
+    } else {
+        response.error_kind = WRERROR_CREATE_FAILED;
+    }
+
+    server_unlock_windows(server);
+
+    return response;
+}
+
 static WindowRendererResponse server_close_window(Server* server, int window_id)
 {
     server_lock_windows(server);
@@ -71,7 +98,7 @@ static bool receive_command(int client_fd, WindowRendererCommand* command)
 {
     int num_bytes_received = recv(client_fd, command, sizeof(*command), 0);
 
-    if (num_bytes_received < 0) {
+    if (num_bytes_received == -1) {
         fprintf(stderr, "ERROR: could not receive bytes from socket: %s\n",
                 strerror(errno));
         return false;
@@ -87,7 +114,7 @@ static bool receive_command(int client_fd, WindowRendererCommand* command)
 
 static bool send_response(int client_fd, WindowRendererResponse response)
 {
-    if (send(client_fd, &response, sizeof(response), 0) < 0) {
+    if (send(client_fd, &response, sizeof(response), 0) == -1) {
         fprintf(stderr, "ERROR: could not send data to the client: %s\n",
                 strerror(errno));
         return false;
@@ -118,22 +145,15 @@ static void* server_handle_client(HandleClientInfo* info)
         };
 
         printf("[INFO] Received command\n");
-        switch (command.kind) {
-        case WRCMD_CREATE_WINDOW: {
-            Window* window
-                = window_create(command.window_title, command.window_width,
-                                command.window_height);
 
-            if (window != NULL) {
-                server->windows[server->windows_count++] = window;
-                response = (WindowRendererResponse) {
-                    .kind = WRRESP_WINID,
-                    .window_id = window->id,
-                };
-            } else {
-                response.error_kind = WRERROR_CREATE_FAILED;
-            }
-        } break;
+        switch (command.kind) {
+
+        case WRCMD_CREATE_WINDOW:
+            response = 
+                server_create_window(server, 
+                                     command.window_title, command.window_width,
+                                     command.window_height);
+            break;
 
         case WRCMD_CLOSE_WINDOW:
             response = server_close_window(server, command.window_id);
@@ -142,6 +162,7 @@ static void* server_handle_client(HandleClientInfo* info)
         default:
             printf("  => ERROR: unknown command `%d`\n", command.kind);
             response.error_kind = WRERROR_INVALID_COMMAND;
+
         }
 
         if (!send_response(cfd, response))
@@ -156,20 +177,20 @@ exit:
 
 static void* server_listener(Server* server)
 {
-    if (listen(server->socket, LISTEN_QUEUE) < 0) {
+    if (listen(server->socket, LISTEN_QUEUE) == -1) {
         fprintf(stderr, "ERROR: could not listen to socket: %s\n",
                 strerror(errno));
         goto exit;
     }
 
-    struct sockaddr_un client_addr;
     while (true) {
         printf("[INFO] Waiting for connection...\n");
 
+        struct sockaddr_un client_addr;
         socklen_t client_len = sizeof(client_addr);
         int client_fd = accept(server->socket, (struct sockaddr*)&client_addr,
                                &client_len);
-        if (client_fd < 0) {
+        if (client_fd == -1) {
             fprintf(stderr, "ERROR: could not accept connection: %s\n",
                     strerror(errno));
             continue;
@@ -185,7 +206,7 @@ static void* server_listener(Server* server)
                              (void* (*)(void*)) & server_handle_client, info);
         if (status != 0) {
             fprintf(stderr, "ERROR: could not create handle_client thread\n");
-            goto exit;
+            continue;
         }
     }
 

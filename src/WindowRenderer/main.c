@@ -9,7 +9,7 @@
 int main(void)
 {
     Server* server = server_create();
-    if (server_run(server) == -1) {
+    if (!server_run(server)) {
         return 1;
     }
 
