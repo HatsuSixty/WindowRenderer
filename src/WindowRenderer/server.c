@@ -50,7 +50,7 @@ static WindowRendererResponse server_create_window(Server* server,
                                                    char const* title, int width, int height)
 {
     server_lock_windows(server);
-    
+
     WindowRendererResponse response = {
         .kind = WRRESP_ERROR,
         .error_kind = WRERROR_OK,
@@ -93,8 +93,8 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
                 break;
             }
 
-            if (!(i >= server->windows_count)) {
-                memmove(&server->windows[i], &server->windows[i+1], sizeof(void*));
+            if (i < server->windows_count - 1) {
+                memmove(&server->windows[i], &server->windows[i + 1], sizeof(void*));
             }
             server->windows_count -= 1;
 
