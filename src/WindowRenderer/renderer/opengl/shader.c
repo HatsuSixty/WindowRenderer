@@ -63,20 +63,19 @@ Shader* shader_create(const char* vertex_source, const char* fragment_source)
 {
     Shader* shader = malloc(sizeof(*shader));
     memset(shader, 0, sizeof(*shader));
-    shader->valid = true;
 
     gl_call(shader->id = glCreateProgram());
 
     GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, vertex_source);
     if (vert_shader == 0) {
         gl(DeleteProgram, shader->id);
-        shader->valid = false;
+        return NULL;
     } 
 
     GLuint frag_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_source);
     if (frag_shader == 0) {
         gl(DeleteProgram, shader->id);
-        shader->valid = false;
+        return NULL;
     }
 
     gl(AttachShader, shader->id, vert_shader);

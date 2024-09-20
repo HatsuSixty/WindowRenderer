@@ -9,6 +9,7 @@ executable('WindowRenderer', [
   'renderer/opengl/vertex_buffer.c',
   'renderer/opengl/index_buffer.c',
   'renderer/opengl/shader.c',
+  'renderer/renderer.c',
   'main.c',
   'application.c',
   'server.c',

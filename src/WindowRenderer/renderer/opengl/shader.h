@@ -15,7 +15,6 @@ typedef struct {
 
 typedef struct {
     GLuint id;
-    bool valid;
 
     Uniform uniforms[MAX_UNIFORMS];
     size_t uniform_count;
