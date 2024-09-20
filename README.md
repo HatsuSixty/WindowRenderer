@@ -23,4 +23,4 @@ sleep 15
 killall --signal SIGINT WindowRenderer
 ```
 
-And run the script **in a TTY!**. This will start the server, open a client after 1 second, and terminate the server after 15 seconds. The client closes itself automatically after 10 seconds.
+And run the script **in a TTY!** This will start the server, open a client after 1 second, and terminate the server after 15 seconds. The client closes itself automatically after 10 seconds.
