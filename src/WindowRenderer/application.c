@@ -37,7 +37,7 @@ void application_destroy_graphics(Application* application)
 void application_render(Application* application)
 {
     (void)application;
-    
+
     gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
     gl(Clear, GL_COLOR_BUFFER_BIT);
 
