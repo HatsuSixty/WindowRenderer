@@ -13,21 +13,19 @@
 
 #include "application.h"
 
-float color = 0.f;
+bool should_quit = false;
 
-/* Opens a DRM device */
-static int open_restricted(const char *path, int flags, void *userData)
+static int open_restricted(const char *path, int flags, void *user_data)
 {
-    SRM_UNUSED(userData);
+    (void)user_data;
 
-    // Here something like libseat could be used instead
     return open(path, flags);
 }
 
-/* Closes a DRM device */
-static void close_restricted(int fd, void *userData)
+static void close_restricted(int fd, void *user_data)
 {
-    SRM_UNUSED(userData);
+    (void)user_data;
+
     close(fd);
 }
 
@@ -40,15 +38,14 @@ static void initialize_gl(SRMConnector *connector, void *user_data)
 {
     Application* application = user_data;
 
-    /* You must not do any drawing here as it won't make it to
-     * the screen. */
-
     SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
 
     int width = srmConnectorModeGetWidth(mode);
     int height = srmConnectorModeGetHeight(mode);
 
-    application_init_graphics(application, width, height);
+    if (!application_init_graphics(application, width, height)) {
+        should_quit = true;
+    }
 
     srmConnectorRepaint(connector);
 }
@@ -66,11 +63,6 @@ static void resize_gl(SRMConnector *connector, void *user_data)
 {
     Application* application = user_data;
     
-    /* You must not do any drawing here as it won't make it to
-     * the screen.
-     * This is called when the connector changes its current mode,
-     * set with srmConnectorSetMode() */
-
     SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
 
     int width = srmConnectorModeGetWidth(mode);
@@ -81,28 +73,17 @@ static void resize_gl(SRMConnector *connector, void *user_data)
     srmConnectorRepaint(connector);
 }
 
-static void page_flipped(SRMConnector *connector, void *userData)
+static void page_flipped(SRMConnector *connector, void *user_data)
 {
-    SRM_UNUSED(connector);
-    SRM_UNUSED(userData);
-
-    /* You must not do any drawing here as it won't make it to
-     * the screen.
-     * This is called when the last rendered frame is now being
-     * displayed on screen.
-     * Google v-sync for more info. */
+    (void)connector;
+    (void)user_data;
 }
 
 static void uninitialize_gl(SRMConnector *connector, void *user_data)
 {
-    Application* application = user_data;
-    
-    SRM_UNUSED(connector);
+    (void)connector;
 
-    /* You must not do any drawing here as it won't make it to
-     * the screen.
-     * Here you should free any resource created on initializeGL()
-     * like shaders, programs, textures, etc. */
+    Application* application = user_data;
 
     application_destroy_graphics(application);
 }
@@ -117,11 +98,9 @@ static SRMConnectorInterface connector_interface = {
 
 static void connector_plugged_event_handler(SRMListener *listener, SRMConnector *connector)
 {
-    SRM_UNUSED(listener);
+    (void)listener;
 
     Application* application = srmListenerGetUserData(listener);
-
-    /* This is called when a new connector is avaliable (E.g. Plugging an HDMI display). */
 
     if (!srmConnectorInitialize(connector, &connector_interface, application))
         fprintf(stderr, "ERROR: failed to initialize connector %s.",
@@ -130,13 +109,8 @@ static void connector_plugged_event_handler(SRMListener *listener, SRMConnector 
 
 static void connector_unplugged_event_handler(SRMListener *listener, SRMConnector *connector)
 {
-    SRM_UNUSED(listener);
-    SRM_UNUSED(connector);
-
-    /* This is called when a connector is no longer avaliable (E.g. Unplugging an HDMI display). */
-
-    /* The connnector is automatically uninitialized after this event (if initialized)
-     * so calling srmConnectorUninitialize() here is not required. */
+    (void)listener;
+    (void)connector;
 }
 
 int main(void)
@@ -177,7 +151,7 @@ int main(void)
         }
     }
 
-    while (1) {
+    while (!should_quit) {
         if (srmCoreProcessMonitor(core, -1) < 0)
             break;
     }

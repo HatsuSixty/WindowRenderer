@@ -68,12 +68,14 @@ Shader* shader_create(const char* vertex_source, const char* fragment_source)
 
     GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, vertex_source);
     if (vert_shader == 0) {
+        fprintf(stderr, "ERROR: failed to compile vertex shader\n");
         gl(DeleteProgram, shader->id);
         return NULL;
-    } 
+    }
 
     GLuint frag_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_source);
     if (frag_shader == 0) {
+        fprintf(stderr, "ERROR: failed to compile fragment shader\n");
         gl(DeleteProgram, shader->id);
         return NULL;
     }
