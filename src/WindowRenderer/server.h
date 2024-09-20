@@ -21,6 +21,7 @@ typedef struct {
 Server* server_create(void);
 void server_destroy(Server* server);
 
+// Returns false on error
 bool server_run(Server* server);
 
 void server_lock_windows(Server* server);

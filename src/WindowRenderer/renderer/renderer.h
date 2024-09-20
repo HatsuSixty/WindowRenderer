@@ -33,6 +33,7 @@ typedef struct {
     IndexBuffer* index_buffer;
 } Renderer;
 
+// Returns NULL on error
 Renderer* renderer_create(int width, int height);
 void renderer_destroy(Renderer* renderer);
 

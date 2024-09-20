@@ -19,6 +19,8 @@ typedef struct {
 } Window;
 
 Window* window_create(char const* title, int width, int height);
+
+// Returns NULL on error
 bool window_destroy(Window* window);
 
 #endif // WR_WINDOW_H_
