@@ -16,12 +16,11 @@ static void sort_triangle(Vector2* a, Vector2* b, Vector2* c)
     }
 }
 
-// static void renderer_bind_texture(Renderer* renderer, Texture* texture)
-// {
-//     texture_bind(texture, 0);
-//     shader_bind(renderer->default_shader);
-//     shader_set_uniform_1i(renderer->default_shader, "u_texture_slot", 0);
-// }
+static void renderer_bind_texture(Renderer* renderer, Texture* texture)
+{
+    texture_bind(texture, 0);
+    shader_set_uniform_1i(renderer->default_shader, "u_texture_slot", 0);
+}
 
 static void renderer_screen_to_ndc(Renderer* renderer, Vector2* coord)
 {
@@ -110,9 +109,8 @@ void renderer_destroy(Renderer* renderer)
 void renderer_begin_drawing(Renderer* renderer)
 {
     vertex_array_bind(renderer->vertex_array);
-    texture_bind(renderer->default_texture, 0);
     shader_bind(renderer->default_shader);
-    shader_set_uniform_1i(renderer->default_shader, "u_texture_slot", 0);
+    renderer_bind_texture(renderer, renderer->default_texture);
 }
 
 void renderer_resize(Renderer* renderer, int width, int height)
@@ -154,11 +152,52 @@ void renderer_draw_triangle(Renderer* renderer,
 void renderer_draw_texture(Renderer* renderer, Texture* texture,
                            Vector2 position, Vector4 tint)
 {
-    renderer_clear_buffers(renderer);
+    renderer_draw_texture_ex(renderer, texture, position,
+                             (Vector2) { texture->width, texture->height },
+                             tint);
 }
 
 void renderer_draw_texture_ex(Renderer* renderer, Texture* texture,
                               Vector2 position, Vector2 size, Vector4 tint)
 {
+    Vector2 a = { position.x, position.y + size.y };
+    Vector2 b = { position.x + size.x, position.y + size.y };
+    Vector2 c = { position.x + size.x, position.y };
+    Vector2 d = position;
+
+    renderer_screen_to_ndc(renderer, &a);
+    renderer_screen_to_ndc(renderer, &b);
+    renderer_screen_to_ndc(renderer, &c);
+    renderer_screen_to_ndc(renderer, &d);
+
+    renderer_bind_texture(renderer, texture);
+
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+        V2X(a), 0.0f, 0.0f, V4X(tint),
+    });
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+        V2X(b), 1.0f, 0.0f, V4X(tint),
+    });
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+        V2X(c), 1.0f, 1.0f, V4X(tint),
+    });
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+        V2X(d), 0.0f, 1.0f, V4X(tint),
+    });
+
+    // First triangle
+    index_buffer_push_index(renderer->index_buffer, 0);
+    index_buffer_push_index(renderer->index_buffer, 1);
+    index_buffer_push_index(renderer->index_buffer, 2);
+
+    // Second triangle
+    index_buffer_push_index(renderer->index_buffer, 2);
+    index_buffer_push_index(renderer->index_buffer, 3);
+    index_buffer_push_index(renderer->index_buffer, 0);
+
+    gl(DrawElements, GL_TRIANGLES, index_buffer_count(renderer->index_buffer),
+                     GL_UNSIGNED_INT, NULL);
+
+    renderer_bind_texture(renderer, renderer->default_texture);
     renderer_clear_buffers(renderer);
 }
