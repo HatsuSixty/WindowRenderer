@@ -22,6 +22,7 @@ Window* window_create(char const* title, int width, int height)
     window->title = title;
     window->width = width;
     window->height = height;
+    window->pixels_shm_fd = -1;
 
     id_tracker++;
 
@@ -62,9 +63,14 @@ Window* window_create(char const* title, int width, int height)
 
 defer:
     if (failed) {
-        munmap(window->pixels, window->pixels_shm_size);
         free(window->pixels_shm_name);
-        close(window->pixels_shm_fd);
+
+        if (window->pixels != MAP_FAILED && window->pixels != NULL)
+            munmap(window->pixels, window->pixels_shm_size);
+
+        if (window->pixels_shm_fd != -1)
+            close(window->pixels_shm_fd);
+
         free(window);
         return NULL;
     }
@@ -75,24 +81,28 @@ bool window_destroy(Window* window)
 {
     bool result = true;
 
-    close(window->pixels_shm_fd);
-
     if (munmap(window->pixels, window->pixels_shm_size) == -1) {
         fprintf(stderr, "ERROR: could not munmap shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
         result = false;
-        goto defer;
+    }
+
+    if (close(window->pixels_shm_fd) == -1) {
+        fprintf(stderr, 
+                "ERROR: could not close shared memory file descriptor for "
+                "window of ID %d: %s\n",
+                window->id, strerror(errno));
+        result = false;
     }
 
     if (shm_unlink(window->pixels_shm_name) == -1) {
         fprintf(stderr, "ERROR: could not unlink shared memory for window of ID %d: %s\n",
                 window->id, strerror(errno));
         result = false;
-        goto defer;
     }
 
-defer:
     free(window->pixels_shm_name);
     free(window);
+
     return result;
 }

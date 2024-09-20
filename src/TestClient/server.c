@@ -55,7 +55,7 @@ static bool is_response_valid(char const* command, WindowRendererResponseKind ex
 int server_create()
 {
     int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd < 0) {
+    if (sockfd == -1) {
         fprintf(stderr, "ERROR: could open socket: %s\n", strerror(errno));
         return -1;
     }
@@ -65,8 +65,9 @@ int server_create()
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
-    if (connect(sockfd, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) < 0) {
+    if (connect(sockfd, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) == -1) {
         fprintf(stderr, "ERROR: could not connect to socket: %s\n", strerror(errno));
+        close(sockfd);
         return -1;
     }
 
