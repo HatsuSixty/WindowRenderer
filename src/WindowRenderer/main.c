@@ -158,8 +158,8 @@ int main(void)
     srmListenerSetUserData(connector_plugged_listener, application);
 
     srmCoreAddConnectorUnpluggedEventListener(core, 
-                                                &connector_unplugged_event_handler,
-                                                NULL);
+                                              &connector_unplugged_event_handler,
+                                              NULL);
 
     SRMListForeach(device_it, srmCoreGetDevices(core))
     {
