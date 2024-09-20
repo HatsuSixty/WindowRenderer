@@ -45,12 +45,10 @@ static void initialize_gl(SRMConnector *connector, void *user_data)
 
     SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
 
-    glViewport(0, 
-               0, 
-               srmConnectorModeGetWidth(mode), 
-               srmConnectorModeGetHeight(mode));
+    int width = srmConnectorModeGetWidth(mode);
+    int height = srmConnectorModeGetHeight(mode);
 
-    application_init_graphics(application);
+    application_init_graphics(application, width, height);
 
     srmConnectorRepaint(connector);
 }
@@ -66,7 +64,7 @@ static void paint_gl(SRMConnector *connector, void *user_data)
 
 static void resize_gl(SRMConnector *connector, void *user_data)
 {
-    (void)user_data;
+    Application* application = user_data;
     
     /* You must not do any drawing here as it won't make it to
      * the screen.
@@ -75,10 +73,10 @@ static void resize_gl(SRMConnector *connector, void *user_data)
 
     SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
 
-    glViewport(0, 
-               0, 
-               srmConnectorModeGetWidth(mode), 
-               srmConnectorModeGetHeight(mode));
+    int width = srmConnectorModeGetWidth(mode);
+    int height = srmConnectorModeGetHeight(mode);
+
+    application_resize(application, width, height);
 
     srmConnectorRepaint(connector);
 }

@@ -22,6 +22,9 @@ typedef struct {
 #define V4X(vec) vec.x, vec.y, vec.z, vec.w
 
 typedef struct {
+    int screen_width;
+    int screen_height;
+
     Shader* default_shader;
     Texture* default_texture;
     
@@ -30,10 +33,12 @@ typedef struct {
     IndexBuffer* index_buffer;
 } Renderer;
 
-Renderer* renderer_create();
+Renderer* renderer_create(int width, int height);
 void renderer_destroy(Renderer* renderer);
 
 void renderer_begin_drawing(Renderer* renderer);
+
+void renderer_resize(Renderer* renderer, int width, int height);
 
 void renderer_draw_triangle(Renderer* renderer,
                             Vector2 a, Vector2 b, Vector2 c,

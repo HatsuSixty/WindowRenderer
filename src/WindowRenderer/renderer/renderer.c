@@ -5,13 +5,6 @@
 
 #include "opengl/gl_errors.h"
 
-// static void renderer_bind_texture(Renderer* renderer, Texture* texture)
-// {
-//     texture_bind(texture, 0);
-//     shader_bind(renderer->default_shader);
-//     shader_set_uniform_1i(renderer->default_shader, "u_texture_slot", 0);
-// }
-
 static void sort_triangle(Vector2* a, Vector2* b, Vector2* c)
 {
     float area =
@@ -23,16 +16,36 @@ static void sort_triangle(Vector2* a, Vector2* b, Vector2* c)
     }
 }
 
+// static void renderer_bind_texture(Renderer* renderer, Texture* texture)
+// {
+//     texture_bind(texture, 0);
+//     shader_bind(renderer->default_shader);
+//     shader_set_uniform_1i(renderer->default_shader, "u_texture_slot", 0);
+// }
+
+static void renderer_screen_to_ndc(Renderer* renderer, Vector2* coord)
+{
+    *coord = (Vector2) {
+        .x = ((coord->x / renderer->screen_width) * 2.0f) - 1.0f,
+        .y = 1.0f - ((coord->y / renderer->screen_height) * 2.0f),
+    };
+}
+
 static void renderer_clear_buffers(Renderer* renderer)
 {
     vertex_buffer_clear(renderer->vertex_buffer);
     index_buffer_clear(renderer->index_buffer);
 }
 
-Renderer* renderer_create()
+Renderer* renderer_create(int width, int height)
 {
     Renderer* renderer = malloc(sizeof(*renderer));
     memset(renderer, 0, sizeof(*renderer));
+
+    gl(Viewport, 0, 0, width, height);
+
+    renderer->screen_width = width;
+    renderer->screen_height = height;
 
     renderer->vertex_array = vertex_array_create();
 
@@ -102,10 +115,20 @@ void renderer_begin_drawing(Renderer* renderer)
     shader_set_uniform_1i(renderer->default_shader, "u_texture_slot", 0);
 }
 
+void renderer_resize(Renderer* renderer, int width, int height)
+{
+    gl(Viewport, 0, 0, width, height);
+    renderer->screen_width = width;
+    renderer->screen_height = height;
+}
+
 void renderer_draw_triangle(Renderer* renderer,
                             Vector2 a, Vector2 b, Vector2 c,
                             Vector4 color)
 {
+    renderer_screen_to_ndc(renderer, &a);
+    renderer_screen_to_ndc(renderer, &b);
+    renderer_screen_to_ndc(renderer, &c);
     sort_triangle(&a, &b, &c);
 
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {

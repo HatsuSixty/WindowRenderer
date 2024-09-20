@@ -13,8 +13,10 @@ typedef struct {
 Application* application_create(void);
 void application_destroy(Application* application);
 
-bool application_init_graphics(Application* application);
+bool application_init_graphics(Application* application, int width, int height);
 void application_destroy_graphics(Application* application);
+
+void application_resize(Application* application, int width, int height);
 
 void application_render(Application* application);
 
