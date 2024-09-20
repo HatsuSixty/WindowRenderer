@@ -64,37 +64,14 @@ void vertex_buffer_resize(VertexBuffer* vb, size_t added_size)
 {
     if (added_size == 0) return;
 
-    if (!vb->cpu_data) {
-        if (vb->capacity != 0) {
-            assert(false && "vertex_buffer_resize: CPU data desynced");
-            return;
-        }
-
-        // Alloc CPU data
-        vb->cpu_data = malloc(added_size);
-        memset(vb->cpu_data, 0, added_size);
-
-        // Alloc GPU data
-        gl(BufferData, GL_ARRAY_BUFFER, added_size, vb->cpu_data, GL_DYNAMIC_DRAW);
-
-        // Update capacity
-        vb->capacity += added_size;
-
-        return;
-    }
-
     size_t new_size = vb->capacity + added_size;
 
-    unsigned char* new_data = malloc(new_size);
-    memset(new_data, 0, new_size);
-    memcpy(new_data, vb->cpu_data, vb->capacity);
+    vb->cpu_data = realloc(vb->cpu_data, new_size);
+    memset(vb->cpu_data + vb->capacity, 0, added_size);
 
-    gl(BufferData, GL_ARRAY_BUFFER, new_size, new_data, GL_DYNAMIC_DRAW);
-    memcpy(vb->cpu_data, new_data, new_size);
+    gl(BufferData, GL_ARRAY_BUFFER, new_size, vb->cpu_data, GL_DYNAMIC_DRAW);
 
-    free(new_data);
-
-    vb->capacity += added_size;
+    vb->capacity = new_size;
 }
 
 void vertex_buffer_push_vertex(VertexBuffer* vb, Vertex vertex)

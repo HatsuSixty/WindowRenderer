@@ -7,6 +7,7 @@
 #include <SRMList.h>
 #include <SRMLog.h>
 
+#include <signal.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -113,8 +114,16 @@ static void connector_unplugged_event_handler(SRMListener *listener, SRMConnecto
     (void)connector;
 }
 
+void ctrl_c(int signo)
+{
+    (void)signo;
+    should_quit = true;
+}
+
 int main(void)
 {
+    signal(SIGINT, ctrl_c);
+
     Application* application = application_create();
     
     SRMCore *core = srmCoreCreate(&srm_interface, NULL);

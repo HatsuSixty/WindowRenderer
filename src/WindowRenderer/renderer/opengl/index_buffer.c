@@ -44,39 +44,15 @@ void index_buffer_clear(IndexBuffer* ib)
 void index_buffer_resize(IndexBuffer* ib, size_t added_byte_size)
 {
     if (added_byte_size == 0) return;
-    
-    if (!ib->cpu_data) {
-        if (ib->capacity != 0) {
-            assert(false && "index_buffer_resize: CPU data desynced");
-            return;
-        }
-
-        // Alloc CPU data
-        ib->cpu_data = malloc(added_byte_size);
-        memset(ib->cpu_data, 0, added_byte_size);
-
-        // Alloc GPU data
-        gl(BufferData, GL_ELEMENT_ARRAY_BUFFER, 
-                       added_byte_size, ib->cpu_data, GL_DYNAMIC_DRAW);
-
-        // Update capacity
-        ib->capacity += added_byte_size;
-
-        return;
-    }
 
     size_t new_size = ib->capacity + added_byte_size;
 
-    unsigned char* new_data = malloc(new_size);
-    memset(new_data, 0, new_size);
-    memcpy(new_data, ib->cpu_data, ib->capacity);
+    ib->cpu_data = realloc(ib->cpu_data, new_size);
+    memset(ib->cpu_data + ib->capacity, 0, added_byte_size);
 
-    gl(BufferData, GL_ELEMENT_ARRAY_BUFFER, new_size, new_data, GL_DYNAMIC_DRAW);
-    memcpy(ib->cpu_data, new_data, new_size);
+    gl(BufferData, GL_ELEMENT_ARRAY_BUFFER, new_size, ib->cpu_data, GL_DYNAMIC_DRAW);
 
-    free(new_data);
-
-    ib->capacity += added_byte_size;
+    ib->capacity = new_size;
 }
 
 void index_buffer_push_index(IndexBuffer* ib, unsigned int index)
