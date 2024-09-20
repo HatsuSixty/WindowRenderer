@@ -3,11 +3,11 @@
 
 #include "server.h"
 
-#include "opengl/vertex_array.h"
-#include "opengl/vertex_buffer.h"
-#include "opengl/index_buffer.h"
-#include "opengl/shader.h"
-#include "opengl/texture.h"
+#include "renderer/opengl/vertex_array.h"
+#include "renderer/opengl/vertex_buffer.h"
+#include "renderer/opengl/index_buffer.h"
+#include "renderer/opengl/shader.h"
+#include "renderer/opengl/texture.h"
 
 typedef struct {
     Server* server;

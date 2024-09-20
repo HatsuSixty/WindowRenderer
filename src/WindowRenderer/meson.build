@@ -3,12 +3,12 @@ window_renderer_inc = include_directories('include')
 cc = meson.get_compiler('c')
 
 executable('WindowRenderer', [
-  'opengl/gl_errors.c',
-  'opengl/texture.c',
-  'opengl/vertex_array.c',
-  'opengl/vertex_buffer.c',
-  'opengl/index_buffer.c',
-  'opengl/shader.c',
+  'renderer/opengl/gl_errors.c',
+  'renderer/opengl/texture.c',
+  'renderer/opengl/vertex_array.c',
+  'renderer/opengl/vertex_buffer.c',
+  'renderer/opengl/index_buffer.c',
+  'renderer/opengl/shader.c',
   'main.c',
   'application.c',
   'server.c',

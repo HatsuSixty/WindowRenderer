@@ -1,6 +1,6 @@
 #include "application.h"
 
-#include "opengl/gl_errors.h"
+#include "renderer/opengl/gl_errors.h"
 
 #include <stdio.h>
 #include <string.h>
