@@ -1,64 +1,192 @@
+#include <SRMCore.h>
+#include <SRMDevice.h>
+#include <SRMConnector.h>
+#include <SRMConnectorMode.h>
+#include <SRMListener.h>
+
+#include <SRMList.h>
+#include <SRMLog.h>
+
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-#include <raylib.h>
+#include "application.h"
 
-#include "server.h"
+float color = 0.f;
 
-#define DEBUG_ENABLE_FPS
+/* Opens a DRM device */
+static int open_restricted(const char *path, int flags, void *userData)
+{
+    SRM_UNUSED(userData);
+
+    // Here something like libseat could be used instead
+    return open(path, flags);
+}
+
+/* Closes a DRM device */
+static void close_restricted(int fd, void *userData)
+{
+    SRM_UNUSED(userData);
+    close(fd);
+}
+
+static SRMInterface srm_interface = {
+    .openRestricted = &open_restricted,
+    .closeRestricted = &close_restricted
+};
+
+static void initialize_gl(SRMConnector *connector, void *user_data)
+{
+    Application* application = user_data;
+
+    /* You must not do any drawing here as it won't make it to
+     * the screen. */
+
+    SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
+
+    glViewport(0, 
+               0, 
+               srmConnectorModeGetWidth(mode), 
+               srmConnectorModeGetHeight(mode));
+
+    application_init_graphics(application);
+
+    srmConnectorRepaint(connector);
+}
+
+static void paint_gl(SRMConnector *connector, void *user_data)
+{
+    Application* application = user_data;
+
+    application_render(application);
+
+    srmConnectorRepaint(connector);
+}
+
+static void resize_gl(SRMConnector *connector, void *user_data)
+{
+    (void)user_data;
+    
+    /* You must not do any drawing here as it won't make it to
+     * the screen.
+     * This is called when the connector changes its current mode,
+     * set with srmConnectorSetMode() */
+
+    SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
+
+    glViewport(0, 
+               0, 
+               srmConnectorModeGetWidth(mode), 
+               srmConnectorModeGetHeight(mode));
+
+    srmConnectorRepaint(connector);
+}
+
+static void page_flipped(SRMConnector *connector, void *userData)
+{
+    SRM_UNUSED(connector);
+    SRM_UNUSED(userData);
+
+    /* You must not do any drawing here as it won't make it to
+     * the screen.
+     * This is called when the last rendered frame is now being
+     * displayed on screen.
+     * Google v-sync for more info. */
+}
+
+static void uninitialize_gl(SRMConnector *connector, void *user_data)
+{
+    Application* application = user_data;
+    
+    SRM_UNUSED(connector);
+
+    /* You must not do any drawing here as it won't make it to
+     * the screen.
+     * Here you should free any resource created on initializeGL()
+     * like shaders, programs, textures, etc. */
+
+    application_destroy_graphics(application);
+}
+
+static SRMConnectorInterface connector_interface = {
+    .initializeGL = &initialize_gl,
+    .paintGL = &paint_gl,
+    .resizeGL = &resize_gl,
+    .pageFlipped = &page_flipped,
+    .uninitializeGL = &uninitialize_gl,
+};
+
+static void connector_plugged_event_handler(SRMListener *listener, SRMConnector *connector)
+{
+    SRM_UNUSED(listener);
+
+    Application* application = srmListenerGetUserData(listener);
+
+    /* This is called when a new connector is avaliable (E.g. Plugging an HDMI display). */
+
+    if (!srmConnectorInitialize(connector, &connector_interface, application))
+        fprintf(stderr, "ERROR: failed to initialize connector %s.",
+                srmConnectorGetModel(connector));
+}
+
+static void connector_unplugged_event_handler(SRMListener *listener, SRMConnector *connector)
+{
+    SRM_UNUSED(listener);
+    SRM_UNUSED(connector);
+
+    /* This is called when a connector is no longer avaliable (E.g. Unplugging an HDMI display). */
+
+    /* The connnector is automatically uninitialized after this event (if initialized)
+     * so calling srmConnectorUninitialize() here is not required. */
+}
 
 int main(void)
 {
-    Server* server = server_create();
-    if (!server_run(server)) {
+    Application* application = application_create();
+    
+    SRMCore *core = srmCoreCreate(&srm_interface, NULL);
+    srmCoreSetUserData(core, application);
+
+    if (!core) {
+        fprintf(stderr, "ERROR: could not initialize SRM core\n");
         return 1;
     }
 
-    InitWindow(800, 600, "WindowRenderer");
+    SRMListener* connector_plugged_listener =
+        srmCoreAddConnectorPluggedEventListener(core,
+                                                &connector_plugged_event_handler, 
+                                                NULL);
+    srmListenerSetUserData(connector_plugged_listener, application);
 
-    while (!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(LIGHTGRAY);
+    srmCoreAddConnectorUnpluggedEventListener(core, 
+                                                &connector_unplugged_event_handler,
+                                                NULL);
 
-#ifdef DEBUG_ENABLE_FPS
-        DrawFPS(0, 0);
-#endif
+    SRMListForeach(device_it, srmCoreGetDevices(core))
+    {
+        SRMDevice *device = srmListItemGetData(device_it);
 
-        server_lock_windows(server);
+        SRMListForeach(connector_it, srmDeviceGetConnectors(device))
+        {
+            SRMConnector *connector = srmListItemGetData(connector_it);
 
-        Texture window_textures[server->windows_count];
-
-        for (size_t i = 0; i < server->windows_count; ++i) {
-            Window* w = server->windows[i];
-
-            Image image = {
-                .data = w->pixels,
-                .width = (int)w->width,
-                .height = (int)w->height,
-                .mipmaps = 1,
-                .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
-            };
-
-            SetTraceLogLevel(LOG_WARNING);
-            window_textures[i] = LoadTextureFromImage(image);
-            SetTraceLogLevel(LOG_INFO);
-
-            DrawTexture(window_textures[i], 0, 0, WHITE);
+            if (srmConnectorIsConnected(connector)) {
+                if (!srmConnectorInitialize(connector, &connector_interface, application))
+                    fprintf(stderr, "ERROR: failed to initialize connector %s\n",
+                            srmConnectorGetModel(connector));
+            }
         }
-
-        EndDrawing();
-        
-        SetTraceLogLevel(LOG_WARNING);
-        for (size_t i = 0; i < server->windows_count; ++i) {
-            UnloadTexture(window_textures[i]);
-        }
-        SetTraceLogLevel(LOG_INFO);
-
-        server_unlock_windows(server);
     }
 
-    server_destroy(server);
+    while (1) {
+        if (srmCoreProcessMonitor(core, -1) < 0)
+            break;
+    }
 
-    CloseWindow();
+    srmCoreDestroy(core);
+
+    application_destroy(application);
 
     return 0;
 }
