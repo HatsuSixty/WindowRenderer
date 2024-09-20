@@ -12,6 +12,8 @@ Application* application_create(void)
     memset(application, 0, sizeof(*application));
 
     application->server = server_create();
+    if (!server_run(application->server))
+        return NULL;
 
     return application;
 }
@@ -48,9 +50,21 @@ void application_render(Application* application)
 
     renderer_begin_drawing(application->renderer);
 
-    renderer_draw_triangle(application->renderer,
-                           (Vector2){10, 10},
-                           (Vector2){10, 500},
-                           (Vector2){600, 600},
-                           (Vector4){1.0f, 0.0f, 0.0f, 1.0f});
+    server_lock_windows(application->server);
+
+    for (size_t i = 0; i < application->server->windows_count; ++i) {
+        Window* window = application->server->windows[i];
+
+        Texture* texture =
+            texture_create(window->pixels, window->width, window->height);
+
+        renderer_draw_texture(application->renderer,
+                              texture,
+                              (Vector2) { 0, 0 },
+                              (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
+
+        texture_destroy(texture);
+    }
+    
+    server_unlock_windows(application->server);
 }

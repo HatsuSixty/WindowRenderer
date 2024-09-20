@@ -10,6 +10,7 @@ typedef struct {
     Renderer* renderer;
 } Application;
 
+// Returns NULL on error
 Application* application_create(void);
 void application_destroy(Application* application);
 

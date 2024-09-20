@@ -125,6 +125,8 @@ int main(void)
     signal(SIGINT, ctrl_c);
 
     Application* application = application_create();
+    if (!application)
+        return 1;
     
     SRMCore *core = srmCoreCreate(&srm_interface, NULL);
     srmCoreSetUserData(core, application);
