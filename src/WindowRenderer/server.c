@@ -2,16 +2,16 @@
 
 #include "WindowRenderer.h"
 
+#include <errno.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
-#include <pthread.h>
+#include <unistd.h>
 
 #include "window.h"
 
@@ -46,7 +46,7 @@ void server_destroy(Server* server)
     free(server);
 }
 
-static WindowRendererResponse server_create_window(Server* server, 
+static WindowRendererResponse server_create_window(Server* server,
                                                    char const* title, int width, int height)
 {
     server_lock_windows(server);
@@ -164,10 +164,9 @@ static void* server_handle_client(HandleClientInfo* info)
         switch (command.kind) {
 
         case WRCMD_CREATE_WINDOW:
-            response = 
-                server_create_window(server, 
-                                     command.window_title, command.window_width,
-                                     command.window_height);
+            response = server_create_window(server,
+                                            command.window_title, command.window_width,
+                                            command.window_height);
             break;
 
         case WRCMD_CLOSE_WINDOW:
@@ -177,7 +176,6 @@ static void* server_handle_client(HandleClientInfo* info)
         default:
             printf("  => ERROR: unknown command `%d`\n", command.kind);
             response.error_kind = WRERROR_INVALID_COMMAND;
-
         }
 
         if (!send_response(cfd, response))
@@ -234,7 +232,7 @@ bool server_run(Server* server)
 {
     if (file_exists(SOCKET_PATH)) {
         if (unlink(SOCKET_PATH) != 0) {
-            fprintf(stderr, "ERROR: could not delete `%s`: %s\n", 
+            fprintf(stderr, "ERROR: could not delete `%s`: %s\n",
                     SOCKET_PATH, strerror(errno));
             return false;
         }
@@ -274,12 +272,12 @@ bool server_run(Server* server)
     return true;
 }
 
-void server_lock_windows(Server *server)
+void server_lock_windows(Server* server)
 {
     pthread_mutex_lock(&server->windows_mutex);
 }
 
-void server_unlock_windows(Server *server)
+void server_unlock_windows(Server* server)
 {
     pthread_mutex_unlock(&server->windows_mutex);
 }

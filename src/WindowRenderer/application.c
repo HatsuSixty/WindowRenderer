@@ -3,8 +3,8 @@
 #include "renderer/opengl/gl_errors.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 Application* application_create(void)
 {
@@ -27,7 +27,8 @@ void application_destroy(Application* application)
 bool application_init_graphics(Application* application, int width, int height)
 {
     application->renderer = renderer_create(width, height);
-    if (!application->renderer) return false;
+    if (!application->renderer)
+        return false;
     return true;
 }
 
@@ -55,8 +56,7 @@ void application_render(Application* application)
     for (size_t i = 0; i < application->server->windows_count; ++i) {
         Window* window = application->server->windows[i];
 
-        Texture* texture =
-            texture_create(window->pixels, window->width, window->height);
+        Texture* texture = texture_create(window->pixels, window->width, window->height);
 
         renderer_draw_texture(application->renderer,
                               texture,
@@ -65,6 +65,6 @@ void application_render(Application* application)
 
         texture_destroy(texture);
     }
-    
+
     server_unlock_windows(application->server);
 }

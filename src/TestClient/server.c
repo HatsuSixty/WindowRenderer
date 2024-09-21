@@ -1,12 +1,12 @@
 #include "server.h"
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <sys/mman.h>
 #include <unistd.h>
 
 #include "WindowRenderer.h"

@@ -18,7 +18,7 @@ int main(void)
     Application* application = application_create();
     if (!application)
         return 1;
-    
+
     if (!glfwInit()) {
         fprintf(stderr, "ERROR: failed to initialize GLFW\n");
         return 1;
@@ -47,7 +47,7 @@ int main(void)
 
     while (!glfwWindowShouldClose(window)) {
         application_render(application);
-    
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -57,6 +57,6 @@ int main(void)
     glfwTerminate();
 
     application_destroy(application);
-    
+
     return 0;
 }

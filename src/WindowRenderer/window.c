@@ -88,7 +88,7 @@ bool window_destroy(Window* window)
     }
 
     if (close(window->pixels_shm_fd) == -1) {
-        fprintf(stderr, 
+        fprintf(stderr,
                 "ERROR: could not close shared memory file descriptor for "
                 "window of ID %d: %s\n",
                 window->id, strerror(errno));

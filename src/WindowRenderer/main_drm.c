@@ -1,29 +1,29 @@
-#include <SRMCore.h>
-#include <SRMDevice.h>
 #include <SRMConnector.h>
 #include <SRMConnectorMode.h>
+#include <SRMCore.h>
+#include <SRMDevice.h>
 #include <SRMListener.h>
 
 #include <SRMList.h>
 #include <SRMLog.h>
 
+#include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
-#include <fcntl.h>
 #include <unistd.h>
 
 #include "application.h"
 
 bool should_quit = false;
 
-static int open_restricted(const char *path, int flags, void *user_data)
+static int open_restricted(const char* path, int flags, void* user_data)
 {
     (void)user_data;
 
     return open(path, flags);
 }
 
-static void close_restricted(int fd, void *user_data)
+static void close_restricted(int fd, void* user_data)
 {
     (void)user_data;
 
@@ -35,11 +35,11 @@ static SRMInterface srm_interface = {
     .closeRestricted = &close_restricted
 };
 
-static void initialize_gl(SRMConnector *connector, void *user_data)
+static void initialize_gl(SRMConnector* connector, void* user_data)
 {
     Application* application = user_data;
 
-    SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
+    SRMConnectorMode* mode = srmConnectorGetCurrentMode(connector);
 
     int width = srmConnectorModeGetWidth(mode);
     int height = srmConnectorModeGetHeight(mode);
@@ -51,7 +51,7 @@ static void initialize_gl(SRMConnector *connector, void *user_data)
     srmConnectorRepaint(connector);
 }
 
-static void paint_gl(SRMConnector *connector, void *user_data)
+static void paint_gl(SRMConnector* connector, void* user_data)
 {
     Application* application = user_data;
 
@@ -60,11 +60,11 @@ static void paint_gl(SRMConnector *connector, void *user_data)
     srmConnectorRepaint(connector);
 }
 
-static void resize_gl(SRMConnector *connector, void *user_data)
+static void resize_gl(SRMConnector* connector, void* user_data)
 {
     Application* application = user_data;
-    
-    SRMConnectorMode *mode = srmConnectorGetCurrentMode(connector);
+
+    SRMConnectorMode* mode = srmConnectorGetCurrentMode(connector);
 
     int width = srmConnectorModeGetWidth(mode);
     int height = srmConnectorModeGetHeight(mode);
@@ -74,13 +74,13 @@ static void resize_gl(SRMConnector *connector, void *user_data)
     srmConnectorRepaint(connector);
 }
 
-static void page_flipped(SRMConnector *connector, void *user_data)
+static void page_flipped(SRMConnector* connector, void* user_data)
 {
     (void)connector;
     (void)user_data;
 }
 
-static void uninitialize_gl(SRMConnector *connector, void *user_data)
+static void uninitialize_gl(SRMConnector* connector, void* user_data)
 {
     (void)connector;
 
@@ -97,7 +97,7 @@ static SRMConnectorInterface connector_interface = {
     .uninitializeGL = &uninitialize_gl,
 };
 
-static void connector_plugged_event_handler(SRMListener *listener, SRMConnector *connector)
+static void connector_plugged_event_handler(SRMListener* listener, SRMConnector* connector)
 {
     (void)listener;
 
@@ -108,7 +108,7 @@ static void connector_plugged_event_handler(SRMListener *listener, SRMConnector 
                 srmConnectorGetModel(connector));
 }
 
-static void connector_unplugged_event_handler(SRMListener *listener, SRMConnector *connector)
+static void connector_unplugged_event_handler(SRMListener* listener, SRMConnector* connector)
 {
     (void)listener;
     (void)connector;
@@ -127,8 +127,8 @@ int main(void)
     Application* application = application_create();
     if (!application)
         return 1;
-    
-    SRMCore *core = srmCoreCreate(&srm_interface, NULL);
+
+    SRMCore* core = srmCoreCreate(&srm_interface, NULL);
     srmCoreSetUserData(core, application);
 
     if (!core) {
@@ -136,23 +136,22 @@ int main(void)
         return 1;
     }
 
-    SRMListener* connector_plugged_listener =
-        srmCoreAddConnectorPluggedEventListener(core,
-                                                &connector_plugged_event_handler, 
-                                                NULL);
+    SRMListener* connector_plugged_listener = srmCoreAddConnectorPluggedEventListener(core,
+                                                                                      &connector_plugged_event_handler,
+                                                                                      NULL);
     srmListenerSetUserData(connector_plugged_listener, application);
 
-    srmCoreAddConnectorUnpluggedEventListener(core, 
+    srmCoreAddConnectorUnpluggedEventListener(core,
                                               &connector_unplugged_event_handler,
                                               NULL);
 
     SRMListForeach(device_it, srmCoreGetDevices(core))
     {
-        SRMDevice *device = srmListItemGetData(device_it);
+        SRMDevice* device = srmListItemGetData(device_it);
 
         SRMListForeach(connector_it, srmDeviceGetConnectors(device))
         {
-            SRMConnector *connector = srmListItemGetData(connector_it);
+            SRMConnector* connector = srmListItemGetData(connector_it);
 
             if (srmConnectorIsConnected(connector)) {
                 if (!srmConnectorInitialize(connector, &connector_interface, application))

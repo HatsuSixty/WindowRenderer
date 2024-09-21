@@ -7,8 +7,7 @@
 
 static void sort_triangle(Vector2* a, Vector2* b, Vector2* c)
 {
-    float area =
-        (b->x - a->x) * (c->y - a->y) - (b->y - a->y) * (c->x - a->x);
+    float area = (b->x - a->x) * (c->y - a->y) - (b->y - a->y) * (c->x - a->x);
     if (area < 0.0f) {
         Vector2 temp = *b;
         *b = *c;
@@ -48,46 +47,41 @@ Renderer* renderer_create(int width, int height)
 
     renderer->vertex_array = vertex_array_create();
 
-    renderer->vertex_buffer =
-        vertex_array_bind_vertex_buffer(renderer->vertex_array);
-    renderer->index_buffer =
-        vertex_array_bind_index_buffer(renderer->vertex_array);
+    renderer->vertex_buffer = vertex_array_bind_vertex_buffer(renderer->vertex_array);
+    renderer->index_buffer = vertex_array_bind_index_buffer(renderer->vertex_array);
 
     vertex_array_unbind_all(renderer->vertex_array);
 
-    const char* vertex_shader_source =
-        "#version 100\n"
-        ""
-        "attribute vec4 a_position;\n"
-        "attribute vec2 a_tex_coord;\n"
-        "attribute vec4 a_color;\n"
-        ""
-        "varying vec2 v_tex_coord;\n"
-        "varying vec4 v_color;\n"
-        ""
-        "void main() {\n"
-        "    gl_Position = a_position;\n"
-        "    v_tex_coord = a_tex_coord;\n"
-        "    v_color = a_color;\n"
-        "}";
+    const char* vertex_shader_source = "#version 100\n"
+                                       ""
+                                       "attribute vec4 a_position;\n"
+                                       "attribute vec2 a_tex_coord;\n"
+                                       "attribute vec4 a_color;\n"
+                                       ""
+                                       "varying vec2 v_tex_coord;\n"
+                                       "varying vec4 v_color;\n"
+                                       ""
+                                       "void main() {\n"
+                                       "    gl_Position = a_position;\n"
+                                       "    v_tex_coord = a_tex_coord;\n"
+                                       "    v_color = a_color;\n"
+                                       "}";
 
-    const char* fragment_shader_source =
-        "#version 100\n"
-        ""
-        "precision mediump float;\n"
-        ""
-        "uniform sampler2D u_texture_slot;\n"
-        ""
-        "varying vec2 v_tex_coord;\n"
-        "varying vec4 v_color;\n"
-        ""
-        "void main() {\n"
-        "    vec4 tex_color = texture2D(u_texture_slot, v_tex_coord);\n"
-        "    gl_FragColor = tex_color * v_color;\n"
-        "}";
+    const char* fragment_shader_source = "#version 100\n"
+                                         ""
+                                         "precision mediump float;\n"
+                                         ""
+                                         "uniform sampler2D u_texture_slot;\n"
+                                         ""
+                                         "varying vec2 v_tex_coord;\n"
+                                         "varying vec4 v_color;\n"
+                                         ""
+                                         "void main() {\n"
+                                         "    vec4 tex_color = texture2D(u_texture_slot, v_tex_coord);\n"
+                                         "    gl_FragColor = tex_color * v_color;\n"
+                                         "}";
 
-    renderer->default_shader =
-        shader_create(vertex_shader_source, fragment_shader_source);
+    renderer->default_shader = shader_create(vertex_shader_source, fragment_shader_source);
     if (!renderer->default_shader) {
         return NULL;
     }
@@ -130,21 +124,30 @@ void renderer_draw_triangle(Renderer* renderer,
     sort_triangle(&a, &b, &c);
 
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
-        V2X(a), 0.0f, 0.0f, V4X(color),
-    });
+                                                           V2X(a),
+                                                           0.0f,
+                                                           0.0f,
+                                                           V4X(color),
+                                                       });
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
-        V2X(b), 1.0f, 0.0f, V4X(color),
-    });
+                                                           V2X(b),
+                                                           1.0f,
+                                                           0.0f,
+                                                           V4X(color),
+                                                       });
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
-        V2X(c), 1.0f, 1.0f, V4X(color),
-    });
+                                                           V2X(c),
+                                                           1.0f,
+                                                           1.0f,
+                                                           V4X(color),
+                                                       });
 
     index_buffer_push_index(renderer->index_buffer, 0);
     index_buffer_push_index(renderer->index_buffer, 1);
     index_buffer_push_index(renderer->index_buffer, 2);
 
     gl(DrawElements, GL_TRIANGLES, index_buffer_count(renderer->index_buffer),
-                     GL_UNSIGNED_INT, NULL);
+       GL_UNSIGNED_INT, NULL);
 
     renderer_clear_buffers(renderer);
 }
@@ -173,17 +176,29 @@ void renderer_draw_texture_ex(Renderer* renderer, Texture* texture,
     renderer_bind_texture(renderer, texture);
 
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
-        V2X(a), 0.0f, 0.0f, V4X(tint),
-    });
+                                                           V2X(a),
+                                                           0.0f,
+                                                           0.0f,
+                                                           V4X(tint),
+                                                       });
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
-        V2X(b), 1.0f, 0.0f, V4X(tint),
-    });
+                                                           V2X(b),
+                                                           1.0f,
+                                                           0.0f,
+                                                           V4X(tint),
+                                                       });
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
-        V2X(c), 1.0f, 1.0f, V4X(tint),
-    });
+                                                           V2X(c),
+                                                           1.0f,
+                                                           1.0f,
+                                                           V4X(tint),
+                                                       });
     vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
-        V2X(d), 0.0f, 1.0f, V4X(tint),
-    });
+                                                           V2X(d),
+                                                           0.0f,
+                                                           1.0f,
+                                                           V4X(tint),
+                                                       });
 
     // First triangle
     index_buffer_push_index(renderer->index_buffer, 0);
@@ -196,7 +211,7 @@ void renderer_draw_texture_ex(Renderer* renderer, Texture* texture,
     index_buffer_push_index(renderer->index_buffer, 0);
 
     gl(DrawElements, GL_TRIANGLES, index_buffer_count(renderer->index_buffer),
-                     GL_UNSIGNED_INT, NULL);
+       GL_UNSIGNED_INT, NULL);
 
     renderer_bind_texture(renderer, renderer->default_texture);
     renderer_clear_buffers(renderer);

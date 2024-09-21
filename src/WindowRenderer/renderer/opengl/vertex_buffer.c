@@ -2,8 +2,8 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "gl_errors.h"
 
@@ -22,7 +22,8 @@ VertexBuffer* vertex_buffer_bind_new()
 
 void vertex_buffer_destroy(VertexBuffer* vb)
 {
-    if (vb->cpu_data) free(vb->cpu_data);
+    if (vb->cpu_data)
+        free(vb->cpu_data);
     gl(DeleteBuffers, 1, &vb->id);
     free(vb);
 }
@@ -30,18 +31,18 @@ void vertex_buffer_destroy(VertexBuffer* vb)
 void vertex_buffer_setup_layout(VertexBuffer* vb)
 {
     (void)vb;
-    
+
     gl(EnableVertexAttribArray, 0);
     gl(VertexAttribPointer, 0, 2, GL_FLOAT, GL_FALSE,
-                            sizeof(Vertex), (void*)offsetof(Vertex, position_x));
+       sizeof(Vertex), (void*)offsetof(Vertex, position_x));
 
     gl(EnableVertexAttribArray, 1);
     gl(VertexAttribPointer, 1, 2, GL_FLOAT, GL_FALSE,
-                            sizeof(Vertex), (void*)offsetof(Vertex, texcoord_x));
+       sizeof(Vertex), (void*)offsetof(Vertex, texcoord_x));
 
     gl(EnableVertexAttribArray, 2);
     gl(VertexAttribPointer, 2, 4, GL_FLOAT, GL_FALSE,
-                            sizeof(Vertex), (void*)offsetof(Vertex, color_r));
+       sizeof(Vertex), (void*)offsetof(Vertex, color_r));
 }
 
 void vertex_buffer_bind(VertexBuffer* vb)
@@ -62,7 +63,8 @@ void vertex_buffer_clear(VertexBuffer* vb)
 
 void vertex_buffer_resize(VertexBuffer* vb, size_t added_size)
 {
-    if (added_size == 0) return;
+    if (added_size == 0)
+        return;
 
     size_t new_size = vb->capacity + added_size;
 

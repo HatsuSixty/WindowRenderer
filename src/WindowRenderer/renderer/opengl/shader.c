@@ -1,9 +1,9 @@
 #include "shader.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <GLES2/gl2.h>
 
@@ -13,7 +13,7 @@ static GLuint compile_shader(GLenum type, const char* source)
 {
     GLuint id;
     gl_call(id = glCreateShader(type));
-    
+
     gl(ShaderSource, id, 1, &source, NULL);
     gl(CompileShader, id);
 
@@ -27,8 +27,7 @@ static GLuint compile_shader(GLenum type, const char* source)
         char* error = (char*)alloca(error_length);
         gl(GetShaderInfoLog, id, error_length, &error_length, error);
 
-        const char* shader_type = 
-            type == GL_VERTEX_SHADER ? "vertex" : "fragment";
+        const char* shader_type = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
 
         fprintf(stderr, "ERROR: %s shader compilation: %s\n", shader_type, error);
 
@@ -85,7 +84,7 @@ Shader* shader_create(const char* vertex_source, const char* fragment_source)
 
     gl(BindAttribLocation, shader->id, 0, "a_position");
     gl(BindAttribLocation, shader->id, 1, "a_tex_coord");
-    gl(BindAttribLocation, shader->id, 2, "a_color");    
+    gl(BindAttribLocation, shader->id, 2, "a_color");
 
     gl(LinkProgram, shader->id);
     gl(ValidateProgram, shader->id);
@@ -126,19 +125,19 @@ void shader_set_uniform_1f(Shader* shader, const char* name, float x)
 void shader_set_uniform_2f(Shader* shader, const char* name, float x, float y)
 {
     gl(Uniform2f, shader_get_uniform_location(shader, name),
-                  x, y);
+       x, y);
 }
 
 void shader_set_uniform_3f(Shader* shader, const char* name,
                            float x, float y, float z)
 {
     gl(Uniform3f, shader_get_uniform_location(shader, name),
-                  x, y, z);
+       x, y, z);
 }
 
 void shader_set_uniform_4f(Shader* shader, const char* name,
                            float x, float y, float z, float w)
 {
     gl(Uniform4f, shader_get_uniform_location(shader, name),
-                  x, y, z, w);
+       x, y, z, w);
 }

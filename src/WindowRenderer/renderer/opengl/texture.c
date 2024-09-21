@@ -1,7 +1,7 @@
 #include "texture.h"
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "gl_errors.h"
 
@@ -23,7 +23,7 @@ Texture* texture_create(unsigned char* pixels, int width, int height)
     gl(TexParameteri, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     gl(TexImage2D, GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                   0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+       0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
     gl(BindTexture, GL_TEXTURE_2D, 0);
 

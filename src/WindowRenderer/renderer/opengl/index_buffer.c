@@ -1,9 +1,9 @@
 #include "index_buffer.h"
 
-#include <string.h>
 #include <assert.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "gl_errors.h"
 
@@ -22,7 +22,8 @@ IndexBuffer* index_buffer_bind_new()
 void index_buffer_destroy(IndexBuffer* ib)
 {
     gl(DeleteBuffers, 1, &ib->id);
-    if (ib->cpu_data) free(ib->cpu_data);
+    if (ib->cpu_data)
+        free(ib->cpu_data);
     free(ib);
 }
 
@@ -44,7 +45,8 @@ void index_buffer_clear(IndexBuffer* ib)
 
 void index_buffer_resize(IndexBuffer* ib, size_t added_byte_size)
 {
-    if (added_byte_size == 0) return;
+    if (added_byte_size == 0)
+        return;
 
     size_t new_size = ib->capacity + added_byte_size;
 

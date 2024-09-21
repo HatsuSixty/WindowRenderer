@@ -1,8 +1,8 @@
 #ifndef SHADER_H_
 #define SHADER_H_
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include <GLES2/gl2.h>
 

@@ -3,8 +3,8 @@
 
 #include <GLES2/gl2.h>
 
-#include "vertex_buffer.h"
 #include "index_buffer.h"
+#include "vertex_buffer.h"
 
 typedef struct {
     GLuint id;
