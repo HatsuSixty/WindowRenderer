@@ -23,7 +23,10 @@ void vertex_array_destroy(VertexArray* va)
 
 void vertex_array_bind(VertexArray* va)
 {
-    if (va->vertex_buffer) vertex_buffer_bind(va->vertex_buffer);
+    if (va->vertex_buffer) {
+        vertex_buffer_bind(va->vertex_buffer);
+        vertex_buffer_setup_layout(va->vertex_buffer);
+    }
     if (va->index_buffer) index_buffer_bind(va->index_buffer);
 }
 
@@ -41,7 +44,6 @@ void vertex_array_unbind_all(VertexArray* va)
 VertexBuffer* vertex_array_bind_vertex_buffer(VertexArray* va)
 {
     va->vertex_buffer = vertex_buffer_bind_new();
-    vertex_buffer_setup_layout(va->vertex_buffer);
     return va->vertex_buffer;
 }
 
