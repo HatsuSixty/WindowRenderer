@@ -32,7 +32,7 @@ Texture* texture_create(unsigned char* pixels, int width, int height)
 
 void texture_destroy(Texture* texture)
 {
-    gl(DeleteBuffers, 1, &texture->id);
+    gl(DeleteTextures, 1, &texture->id);
     free(texture);
 }
 
