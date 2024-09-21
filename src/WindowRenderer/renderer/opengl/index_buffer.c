@@ -21,6 +21,7 @@ IndexBuffer* index_buffer_bind_new()
 
 void index_buffer_destroy(IndexBuffer* ib)
 {
+    gl(DeleteBuffers, 1, &ib->id);
     if (ib->cpu_data) free(ib->cpu_data);
     free(ib);
 }
