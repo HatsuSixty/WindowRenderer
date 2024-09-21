@@ -26,6 +26,7 @@ executable('WindowRenderer', [
   'renderer/opengl/index_buffer.c',
   'renderer/opengl/shader.c',
   'renderer/renderer.c',
+  'session.c',
   'main.c',
   'application.c',
   'server.c',

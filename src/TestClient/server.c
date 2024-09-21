@@ -1,9 +1,10 @@
 #include "server.h"
 
-#include <errno.h>
-#include <stdio.h>
+#include "server_session.h"
 
+#include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -54,16 +55,21 @@ static bool is_response_valid(char const* command, WindowRendererResponseKind ex
 
 int server_create()
 {
+    if (!server_session_init()) {
+        return -1;
+    }
+
     int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd == -1) {
-        fprintf(stderr, "ERROR: could open socket: %s\n", strerror(errno));
+        fprintf(stderr, "ERROR: could not open socket: %s\n", strerror(errno));
         return -1;
     }
 
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(struct sockaddr_un));
     addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
+    strncpy(addr.sun_path,
+            server_session_get_socket_name(), sizeof(addr.sun_path) - 1);
 
     if (connect(sockfd, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) == -1) {
         fprintf(stderr, "ERROR: could not connect to socket: %s\n", strerror(errno));

@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define PIXEL_COMPONENTS 4
-
 typedef struct {
     int id;
     int width;

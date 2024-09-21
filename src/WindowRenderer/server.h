@@ -11,6 +11,8 @@
 
 typedef struct {
     int socket;
+    char* socket_path;
+
     pthread_t listener_thread;
 
     pthread_mutex_t windows_mutex;

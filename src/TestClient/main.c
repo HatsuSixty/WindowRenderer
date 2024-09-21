@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -9,8 +8,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-
-#include "WindowRenderer.h"
 
 #include "server.h"
 #include "window.h"

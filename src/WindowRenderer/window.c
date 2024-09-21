@@ -1,5 +1,7 @@
 #include "window.h"
 
+#include "session.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -9,8 +11,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-int id_tracker = 0;
-
 Window* window_create(char const* title, int width, int height)
 {
     bool failed = false;
@@ -18,23 +18,15 @@ Window* window_create(char const* title, int width, int height)
     Window* window = malloc(sizeof(*window));
     memset(window, 0, sizeof(*window));
 
-    window->id = id_tracker;
+    window->id = session_generate_window_id();
     window->title = title;
     window->width = width;
     window->height = height;
     window->pixels_shm_fd = -1;
 
-    id_tracker++;
+    window->pixels_shm_size = width * height * 4;
 
-    char const* shm_name_prefix = "/WRWindow";
-    size_t shm_name_length = strlen(shm_name_prefix) + 5; // 5 = 4 digits + NULL
-
-    window->pixels_shm_name = malloc(shm_name_length);
-    memset(window->pixels_shm_name, 0, shm_name_length);
-    snprintf(window->pixels_shm_name, shm_name_length, "%s%d", shm_name_prefix, window->id);
-
-    window->pixels_shm_size = width * height * PIXEL_COMPONENTS;
-
+    window->pixels_shm_name = session_generate_window_shm_name(window->id);
     window->pixels_shm_fd = shm_open(window->pixels_shm_name, O_CREAT | O_RDWR, 0666);
     if (window->pixels_shm_fd == -1) {
         fprintf(stderr, "ERROR: could not create shared memory for window of ID %d: %s\n",
@@ -63,8 +55,6 @@ Window* window_create(char const* title, int width, int height)
 
 defer:
     if (failed) {
-        free(window->pixels_shm_name);
-
         if (window->pixels != MAP_FAILED && window->pixels != NULL)
             munmap(window->pixels, window->pixels_shm_size);
 
@@ -101,7 +91,6 @@ bool window_destroy(Window* window)
         result = false;
     }
 
-    free(window->pixels_shm_name);
     free(window);
 
     return result;

@@ -1,6 +1,7 @@
 #include "application.h"
 
 #include "renderer/opengl/gl_errors.h"
+#include "session.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,12 @@ Application* application_create(void)
 {
     Application* application = malloc(sizeof(*application));
     memset(application, 0, sizeof(*application));
+
+    printf("Initializing WindowRenderer\n");
+
+    session_init();
+
+    printf("Session hash: %s\n", session_get_hash());
 
     application->server = server_create();
     if (!server_run(application->server))
@@ -44,8 +51,6 @@ void application_resize(Application* application, int width, int height)
 
 void application_render(Application* application)
 {
-    (void)application;
-
     gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
     gl(Clear, GL_COLOR_BUFFER_BIT);
 

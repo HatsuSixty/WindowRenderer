@@ -13,6 +13,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "session.h"
 #include "window.h"
 
 #define LISTEN_QUEUE 20
@@ -27,6 +28,8 @@ Server* server_create(void)
 {
     Server* server = malloc(sizeof(*server));
     memset(server, 0, sizeof(*server));
+
+    server->socket_path = session_generate_socket_name();
 
     pthread_mutex_init(&server->windows_mutex, NULL);
 
@@ -230,10 +233,10 @@ exit:
 
 bool server_run(Server* server)
 {
-    if (file_exists(SOCKET_PATH)) {
-        if (unlink(SOCKET_PATH) != 0) {
+    if (file_exists(server->socket_path)) {
+        if (unlink(server->socket_path) != 0) {
             fprintf(stderr, "ERROR: could not delete `%s`: %s\n",
-                    SOCKET_PATH, strerror(errno));
+                    server->socket_path, strerror(errno));
             return false;
         }
     }
@@ -247,7 +250,7 @@ bool server_run(Server* server)
     struct sockaddr_un server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sun_family = AF_UNIX;
-    strncpy(server_addr.sun_path, SOCKET_PATH,
+    strncpy(server_addr.sun_path, server->socket_path,
             sizeof(server_addr.sun_path) - 1);
 
     int opt = SO_REUSEADDR;
