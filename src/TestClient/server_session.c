@@ -57,7 +57,7 @@ char* server_session_get_socket_name()
     char const* socket_name_postfix = ".sock";
 
     size_t socket_name_length = strlen(socket_name_prefix)
-        + session_hash_length + strlen(socket_name_postfix);
+        + session_hash_length + strlen(socket_name_postfix) + 1;
 
     char* socket_name = string_store_alloc(socket_name_length);
     snprintf(socket_name, socket_name_length, "%s%s%s",

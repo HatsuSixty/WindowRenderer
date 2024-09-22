@@ -90,7 +90,7 @@ char* session_generate_socket_name()
     char const* socket_name_postfix = ".sock";
 
     size_t socket_name_length = strlen(socket_name_prefix)
-        + SESSION_HASH_LENGTH + strlen(socket_name_postfix);
+        + SESSION_HASH_LENGTH + strlen(socket_name_postfix) + 1;
 
     char* socket_name = string_store_alloc(socket_name_length);
     snprintf(socket_name, socket_name_length, "%s%s%s",
