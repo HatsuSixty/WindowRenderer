@@ -22,10 +22,6 @@ int main(void)
     if (window == NULL)
         return 1;
 
-    for (size_t i = 0; i < window->pixels_shm_size / sizeof(uint32_t); ++i) {
-        ((uint32_t*)window->pixels)[i] = 0xFF000000;
-    }
-
     sleep(10);
 
     window_close(window);

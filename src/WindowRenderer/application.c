@@ -59,16 +59,16 @@ void application_render(Application* application)
     server_lock_windows(application->server);
 
     for (size_t i = 0; i < application->server->windows_count; ++i) {
-        Window* window = application->server->windows[i];
+        // Window* window = application->server->windows[i];
 
-        Texture* texture = texture_create(window->pixels, window->width, window->height);
+        // Texture* texture = texture_create(window->pixels, window->width, window->height);
 
-        renderer_draw_texture(application->renderer,
-                              texture,
-                              (Vector2) { 0, 0 },
-                              (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
+        // renderer_draw_texture(application->renderer,
+        //                       texture,
+        //                       (Vector2) { 0, 0 },
+        //                       (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
 
-        texture_destroy(texture);
+        // texture_destroy(texture);
     }
 
     server_unlock_windows(application->server);

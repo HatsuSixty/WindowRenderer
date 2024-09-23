@@ -35,22 +35,6 @@ bool server_session_init()
     return true;
 }
 
-char* server_session_get_window_shm_name(uint32_t window_id)
-{
-    char const* shm_name_prefix = "WRWindow_";
-    char const* underscore = "_";
-
-    size_t window_id_length = snprintf(NULL, 0, "%d", window_id);
-    size_t shm_name_length = strlen(shm_name_prefix)
-        + session_hash_length + strlen(underscore) + window_id_length + 1;
-
-    char* shm_name = string_store_alloc(shm_name_length);
-    snprintf(shm_name, shm_name_length, "%s%s%s%d",
-             shm_name_prefix, session_hash, underscore, window_id);
-
-    return shm_name;
-}
-
 char* server_session_get_socket_name()
 {
     char const* socket_name_prefix = "/tmp/WindowRenderer_";
