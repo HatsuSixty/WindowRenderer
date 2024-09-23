@@ -5,6 +5,14 @@
 #include <stddef.h>
 
 typedef struct {
+    int fd;
+    int width;
+    int height;
+    int format;
+    int stride;
+} WindowDmaBuf;
+
+typedef struct {
     int id;
 
     // private state

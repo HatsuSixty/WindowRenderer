@@ -112,6 +112,47 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
     return response;
 }
 
+static WindowRendererResponse server_set_window_dma_buf(Server* server, int window_id,
+                                                        int dma_buf_fd, WindowRendererDmaBuf dma_buf)
+{
+    server_lock_windows(server);
+
+    WindowRendererResponse response = {
+        .kind = WRRESP_ERROR,
+        .error_kind = WRERROR_OK,
+    };
+
+    bool id_valid = false;
+
+    for (size_t i = 0; i < server->windows_count; i++) {
+        if (server->windows[i]->id == window_id) {
+            id_valid = true;
+
+            if (dma_buf_fd == -1) {
+                response.error_kind = WRERROR_INVALID_DMA_BUF_FD;
+                break;
+            }
+
+            server->windows[i]->dma_buf = (WindowDmaBuf) {
+                .present = true,
+                .fd = dma_buf_fd,
+                .width = dma_buf.width,
+                .height = dma_buf.height,
+                .format = dma_buf.format,
+                .stride = dma_buf.stride,
+            };
+
+            break;
+        }
+    }
+
+    if (!id_valid)
+        response.error_kind = WRERROR_INVALID_WINID;
+
+    server_unlock_windows(server);
+    return response;
+}
+
 static bool receive_command(int client_fd, WindowRendererCommand* command, int* received_fd)
 {
     struct msghdr message_header = { 0 };
@@ -206,13 +247,20 @@ static void* server_handle_client(HandleClientInfo* info)
         switch (command.kind) {
 
         case WRCMD_CREATE_WINDOW:
+            printf("  > WRCMD_CREATE_WINDOW\n");
             response = server_create_window(server,
                                             command.window_title, command.window_width,
                                             command.window_height);
             break;
 
         case WRCMD_CLOSE_WINDOW:
+            printf("  > WRCMD_CLOSE_WINDOW\n");
             response = server_close_window(server, command.window_id);
+            break;
+
+        case WRCMD_SET_WINDOW_DMA_BUF:
+            printf("  > WRCMD_SET_WINDOW_DMA_BUF\n");
+            response = server_set_window_dma_buf(server, command.window_id, command_fd, command.dma_buf);
             break;
 
         default:

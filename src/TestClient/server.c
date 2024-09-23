@@ -1,6 +1,7 @@
 #include "server.h"
 
 #include "server_session.h"
+#include "window.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -155,6 +156,31 @@ bool server_close_window(int serverfd, int id)
         return false;
 
     if (is_response_valid("close window", WRRESP_ERROR, response))
+        return false;
+
+    return true;
+}
+
+bool server_set_window_dma_buf(int serverfd, int window_id, WindowDmaBuf dma_buf)
+{
+    WindowRendererCommand command;
+    command.kind = WRCMD_SET_WINDOW_DMA_BUF;
+    command.window_id = window_id;
+    command.dma_buf = (WindowRendererDmaBuf) {
+        .width = dma_buf.width,
+        .height = dma_buf.height,
+        .format = dma_buf.format,
+        .stride = dma_buf.stride,
+    };
+
+    if (!send_command(serverfd, command, dma_buf.fd))
+        return false;
+
+    WindowRendererResponse response;
+    if (!recv_response(serverfd, &response))
+        return false;
+
+    if (is_response_valid("set window DMA buffer", WRRESP_ERROR, response))
         return false;
 
     return true;

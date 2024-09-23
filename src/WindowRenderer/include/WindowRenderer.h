@@ -26,6 +26,7 @@ typedef enum {
     WRERROR_CREATE_FAILED,
     WRERROR_INVALID_COMMAND,
     WRERROR_INVALID_WINID,
+    WRERROR_INVALID_DMA_BUF_FD,
     WRERROR_OK,
 } WindowRendererErrorKind;
 
@@ -44,7 +45,15 @@ typedef struct {
 typedef enum {
     WRCMD_CREATE_WINDOW,
     WRCMD_CLOSE_WINDOW,
+    WRCMD_SET_WINDOW_DMA_BUF,
 } WindowRendererCommandKind;
+
+typedef struct {
+    int width;
+    int height;
+    int format;
+    int stride;
+} WindowRendererDmaBuf;
 
 #define WR_WINDOW_TITLE_SIZE 256
 
@@ -55,6 +64,8 @@ typedef struct {
     char window_title[WR_WINDOW_TITLE_SIZE];
     int window_width;
     int window_height;
+
+    WindowRendererDmaBuf dma_buf;
 } WindowRendererCommand;
 
 #endif // WINDOW_RENDERER_H_
