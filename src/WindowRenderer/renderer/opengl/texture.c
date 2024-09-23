@@ -30,6 +30,31 @@ Texture* texture_create(unsigned char* pixels, int width, int height)
     return texture;
 }
 
+Texture* texture_create_from_egl_imagekhr(EGLImageKHR egl_image, int width, int height,
+                                          PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES)
+{
+    Texture* texture = malloc(sizeof(*texture));
+    memset(texture, 0, sizeof(*texture));
+
+    texture->width = width;
+    texture->height = height;
+
+    gl(GenTextures, 1, &texture->id);
+
+    gl(BindTexture, GL_TEXTURE_2D, texture->id);
+
+    gl(TexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl(TexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl(TexParameteri, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    gl(TexParameteri, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    gl(EGLImageTargetTexture2DOES, GL_TEXTURE_2D, egl_image);
+
+    gl(BindTexture, GL_TEXTURE_2D, 0);
+
+    return texture;
+}
+
 void texture_destroy(Texture* texture)
 {
     gl(DeleteTextures, 1, &texture->id);

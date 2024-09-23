@@ -125,11 +125,11 @@ void ctrl_c(int signo)
     should_quit = true;
 }
 
-int main(void)
+int main(int argc, char const** argv)
 {
     signal(SIGINT, ctrl_c);
 
-    Application* application = application_create();
+    Application* application = application_create(argc, argv);
     if (!application)
         return 1;
 

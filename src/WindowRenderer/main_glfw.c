@@ -18,9 +18,9 @@ static void on_window_resize(GLFWwindow* window, int width, int height)
     application_resize(application, width, height);
 }
 
-int main(void)
+int main(int argc, char const** argv)
 {
-    Application* application = application_create();
+    Application* application = application_create(argc, argv);
     if (!application)
         return 1;
 

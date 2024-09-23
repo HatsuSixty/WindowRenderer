@@ -6,6 +6,7 @@ cmd_args = []
 
 dependencies = [
   dependency('glesv2'),
+  dependency('egl'),
   cc.find_library('pthread'),
   cc.find_library('m'),
 ]
