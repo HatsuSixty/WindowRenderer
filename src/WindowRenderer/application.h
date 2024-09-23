@@ -1,8 +1,9 @@
 #ifndef WR_APPLICATION_H_
 #define WR_APPLICATION_H_
 
-#include "server.h"
+#include <EGL/egl.h>
 
+#include "server.h"
 #include "renderer/renderer.h"
 
 typedef struct {
@@ -20,6 +21,6 @@ void application_destroy_graphics(Application* application);
 
 void application_resize(Application* application, int width, int height);
 
-void application_render(Application* application);
+void application_render(Application* application, EGLDisplay* egl_display);
 
 #endif // WR_APPLICATION_H_

@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <EGL/egl.h>
+
 #include "application.h"
 
 bool should_quit = false;
@@ -55,7 +57,10 @@ static void paint_gl(SRMConnector* connector, void* user_data)
 {
     Application* application = user_data;
 
-    application_render(application);
+    SRMDevice* device = srmConnectorGetDevice(connector);
+    EGLDisplay* egl_display = srmDeviceGetEGLDisplay(device);
+
+    application_render(application, egl_display);
 
     srmConnectorRepaint(connector);
 }

@@ -2,6 +2,11 @@
 
 #include <GLFW/glfw3.h>
 
+#define GLFW_EXPOSE_NATIVE_EGL
+#include <GLFW/glfw3native.h>
+
+#include <EGL/egl.h>
+
 #include "application.h"
 
 int screen_width = 640;
@@ -40,13 +45,22 @@ int main(void)
 
     glfwMakeContextCurrent(window);
 
-    if (!application_init_graphics(application, screen_width, screen_height))
+    EGLDisplay egl_display = glfwGetEGLDisplay();
+    if (egl_display == EGL_NO_DISPLAY) {
+        fprintf(stderr, "ERROR: failed to get EGL display from GLFW\n");
+        glfwTerminate();
         return 1;
+    }
+
+    if (!application_init_graphics(application, screen_width, screen_height)) {
+        glfwTerminate();
+        return 1;
+    }
 
     glfwSetWindowSizeCallback(window, on_window_resize);
 
     while (!glfwWindowShouldClose(window)) {
-        application_render(application);
+        application_render(application, &egl_display);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

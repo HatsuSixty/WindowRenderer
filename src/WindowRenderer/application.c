@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <EGL/egl.h>
+
 Application* application_create(void)
 {
     Application* application = malloc(sizeof(*application));
@@ -50,8 +52,10 @@ void application_resize(Application* application, int width, int height)
     renderer_resize(application->renderer, width, height);
 }
 
-void application_render(Application* application)
+void application_render(Application* application, EGLDisplay* egl_display)
 {
+    (void)egl_display;
+
     gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
     gl(Clear, GL_COLOR_BUFFER_BIT);
 
