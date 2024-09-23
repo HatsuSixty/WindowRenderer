@@ -48,5 +48,7 @@ void renderer_draw_texture(Renderer* renderer, Texture* texture,
                            Vector2 position, Vector4 tint);
 void renderer_draw_texture_ex(Renderer* renderer, Texture* texture,
                               Vector2 position, Vector2 size, Vector4 tint);
+void renderer_draw_rectangle(Renderer* renderer,
+                             Vector2 position, Vector2 size, Vector4 color);
 
 #endif // RENDERER_H_

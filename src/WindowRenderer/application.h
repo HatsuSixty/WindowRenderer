@@ -1,8 +1,10 @@
 #ifndef WR_APPLICATION_H_
 #define WR_APPLICATION_H_
 
-#include "server.h"
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
+#include "server.h"
 #include "renderer/renderer.h"
 
 typedef struct {
@@ -11,7 +13,7 @@ typedef struct {
 } Application;
 
 // Returns NULL on error
-Application* application_create(void);
+Application* application_create(int argc, char const** argv);
 void application_destroy(Application* application);
 
 // Returns false on error
@@ -20,6 +22,6 @@ void application_destroy_graphics(Application* application);
 
 void application_resize(Application* application, int width, int height);
 
-void application_render(Application* application);
+void application_render(Application* application, EGLDisplay* egl_display);
 
 #endif // WR_APPLICATION_H_

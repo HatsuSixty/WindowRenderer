@@ -1,16 +1,58 @@
 #include "application.h"
 
+#include "renderer/glext.h"
 #include "renderer/opengl/gl_errors.h"
+#include "renderer/opengl/texture.h"
+#include "renderer/renderer.h"
 #include "session.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-Application* application_create(void)
+bool execute_command(int argc, char const** argv, int delay)
 {
+    if (delay != 0) {
+        for (int i = delay; i != 0; --i) {
+            printf("[INFO] Executing command in %d seconds\n", i);
+            sleep(1);
+        }
+    }
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        fprintf(stderr, "ERROR: failed to fork child process\n");
+        return false;
+    }
+
+    if (pid == 0) {
+        char const* args[argc + 1];
+        for (int i = 0; i < argc; ++i) {
+            args[i] = argv[i];
+        }
+        args[argc] = NULL;
+
+        execvp(args[0], (char** const)args);
+        fprintf(stderr, "ERROR: failed to execute command `%s`\n", argv[0]);
+        return false;
+    }
+
+    return true;
+}
+
+Application* application_create(int argc, char const** argv)
+{
+    char const* command = NULL;
+    if (argc > 1)
+        command = argv[1];
+
     Application* application = malloc(sizeof(*application));
     memset(application, 0, sizeof(*application));
+
+    if (!glext_load_extensions()) {
+        return NULL;
+    }
 
     printf("Initializing WindowRenderer\n");
 
@@ -20,6 +62,9 @@ Application* application_create(void)
 
     application->server = server_create();
     if (!server_run(application->server))
+        return NULL;
+
+    if (!execute_command(1, (char const*[]) { command }, 5))
         return NULL;
 
     return application;
@@ -49,8 +94,10 @@ void application_resize(Application* application, int width, int height)
     renderer_resize(application->renderer, width, height);
 }
 
-void application_render(Application* application)
+void application_render(Application* application, EGLDisplay* egl_display)
 {
+    (void)egl_display;
+
     gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
     gl(Clear, GL_COLOR_BUFFER_BIT);
 
@@ -61,14 +108,48 @@ void application_render(Application* application)
     for (size_t i = 0; i < application->server->windows_count; ++i) {
         Window* window = application->server->windows[i];
 
-        Texture* texture = texture_create(window->pixels, window->width, window->height);
+        renderer_draw_rectangle(application->renderer,
+                                (Vector2) { 0, 0 },
+                                (Vector2) { window->width, window->height },
+                                (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
 
-        renderer_draw_texture(application->renderer,
-                              texture,
-                              (Vector2) { 0, 0 },
-                              (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
+        if (window->dma_buf.present) {
+            EGLint image_attrs[] = {
+                EGL_WIDTH, window->dma_buf.width,
+                EGL_HEIGHT, window->dma_buf.height,
+                EGL_LINUX_DRM_FOURCC_EXT, window->dma_buf.format,
+                EGL_DMA_BUF_PLANE0_FD_EXT, window->dma_buf.fd,
+                EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
+                EGL_DMA_BUF_PLANE0_PITCH_EXT, window->dma_buf.stride,
+                EGL_NONE
+            };
 
-        texture_destroy(texture);
+            EGLImageKHR egl_image = eglCreateImageKHR(egl_display, EGL_NO_CONTEXT,
+                                                      EGL_LINUX_DMA_BUF_EXT,
+                                                      NULL,
+                                                      image_attrs);
+            if (egl_image == EGL_NO_IMAGE_KHR) {
+                fprintf(stderr, "ERROR: could not create EGL image from DMA buffer\n");
+                continue;
+            }
+
+            Texture* texture = texture_create_from_egl_imagekhr(egl_image,
+                                                                window->dma_buf.width,
+                                                                window->dma_buf.height);
+
+            renderer_draw_texture_ex(application->renderer,
+                                     texture,
+                                     (Vector2) { 0, 0 },
+                                     (Vector2) {
+                                         window->dma_buf.width,
+                                         window->dma_buf.height,
+                                     },
+                                     (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
+
+            texture_destroy(texture);
+
+            eglDestroyImageKHR(egl_display, egl_image);
+        }
     }
 
     server_unlock_windows(application->server);

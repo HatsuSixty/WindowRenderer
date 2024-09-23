@@ -5,15 +5,21 @@
 #include <stddef.h>
 
 typedef struct {
+    bool present;
+
+    int fd;
+    int width;
+    int height;
+    int format;
+    int stride;
+} WindowDmaBuf;
+
+typedef struct {
     int id;
     int width;
     int height;
     char const* title;
-
-    void* pixels;
-    char* pixels_shm_name;
-    size_t pixels_shm_size;
-    int pixels_shm_fd;
+    WindowDmaBuf dma_buf;
 } Window;
 
 Window* window_create(char const* title, int width, int height);

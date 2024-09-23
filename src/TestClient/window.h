@@ -5,12 +5,15 @@
 #include <stddef.h>
 
 typedef struct {
-    int id;
+    int fd;
+    int width;
+    int height;
+    int format;
+    int stride;
+} WindowDmaBuf;
 
-    char* pixels_shm_name;
-    int pixels_shm_fd;
-    size_t pixels_shm_size;
-    void* pixels;
+typedef struct {
+    int id;
 
     // private state
     int serverfd;

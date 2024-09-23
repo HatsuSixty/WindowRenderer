@@ -112,9 +112,65 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
     return response;
 }
 
-static bool receive_command(int client_fd, WindowRendererCommand* command)
+static WindowRendererResponse server_set_window_dma_buf(Server* server, int window_id,
+                                                        int dma_buf_fd, WindowRendererDmaBuf dma_buf)
 {
-    int num_bytes_received = recv(client_fd, command, sizeof(*command), 0);
+    server_lock_windows(server);
+
+    WindowRendererResponse response = {
+        .kind = WRRESP_ERROR,
+        .error_kind = WRERROR_OK,
+    };
+
+    bool id_valid = false;
+
+    for (size_t i = 0; i < server->windows_count; i++) {
+        if (server->windows[i]->id == window_id) {
+            id_valid = true;
+
+            if (dma_buf_fd == -1) {
+                response.error_kind = WRERROR_INVALID_DMA_BUF_FD;
+                break;
+            }
+
+            server->windows[i]->dma_buf = (WindowDmaBuf) {
+                .present = true,
+                .fd = dma_buf_fd,
+                .width = dma_buf.width,
+                .height = dma_buf.height,
+                .format = dma_buf.format,
+                .stride = dma_buf.stride,
+            };
+
+            break;
+        }
+    }
+
+    if (!id_valid)
+        response.error_kind = WRERROR_INVALID_WINID;
+
+    server_unlock_windows(server);
+    return response;
+}
+
+static bool receive_command(int client_fd, WindowRendererCommand* command, int* received_fd)
+{
+    struct msghdr message_header = { 0 };
+
+    char control_message_buffer[CMSG_SPACE(sizeof(*received_fd))];
+    memset(control_message_buffer, 0, sizeof(control_message_buffer));
+
+    struct iovec io_vector = {
+        .iov_base = command,
+        .iov_len = sizeof(*command),
+    };
+    message_header.msg_iov = &io_vector;
+    message_header.msg_iovlen = 1;
+
+    message_header.msg_control = control_message_buffer;
+    message_header.msg_controllen = sizeof(control_message_buffer);
+
+    int num_bytes_received = recvmsg(client_fd, &message_header, 0);
 
     if (num_bytes_received == -1) {
         fprintf(stderr, "ERROR: could not receive bytes from socket: %s\n",
@@ -127,12 +183,35 @@ static bool receive_command(int client_fd, WindowRendererCommand* command)
         return false;
     }
 
+    if (message_header.msg_controllen > 0) {
+        struct cmsghdr* control_message = CMSG_FIRSTHDR(&message_header);
+        if (control_message
+            && control_message->cmsg_level == SOL_SOCKET
+            && control_message->cmsg_type == SCM_RIGHTS) {
+            memcpy(received_fd, CMSG_DATA(control_message), sizeof(*received_fd));
+        } else {
+            *received_fd = -1;
+        }
+    } else {
+        *received_fd = -1;
+    }
+
     return true;
 }
 
 static bool send_response(int client_fd, WindowRendererResponse response)
 {
-    if (send(client_fd, &response, sizeof(response), 0) == -1) {
+    struct msghdr message_header = { 0 };
+
+    struct iovec io_vector = {
+        .iov_base = &response,
+        .iov_len = sizeof(response),
+    };
+
+    message_header.msg_iov = &io_vector;
+    message_header.msg_iovlen = 1;
+
+    if (sendmsg(client_fd, &message_header, 0) == -1) {
         fprintf(stderr, "ERROR: could not send data to the client: %s\n",
                 strerror(errno));
         return false;
@@ -151,10 +230,11 @@ static void* server_handle_client(HandleClientInfo* info)
     Server* server = info->server;
     int cfd = info->client_fd;
 
-    WindowRendererCommand command;
-
     while (true) {
-        if (!receive_command(cfd, &command))
+        WindowRendererCommand command;
+        int command_fd;
+
+        if (!receive_command(cfd, &command, &command_fd))
             goto exit;
 
         WindowRendererResponse response = {
@@ -167,13 +247,20 @@ static void* server_handle_client(HandleClientInfo* info)
         switch (command.kind) {
 
         case WRCMD_CREATE_WINDOW:
+            printf("  > WRCMD_CREATE_WINDOW\n");
             response = server_create_window(server,
                                             command.window_title, command.window_width,
                                             command.window_height);
             break;
 
         case WRCMD_CLOSE_WINDOW:
+            printf("  > WRCMD_CLOSE_WINDOW\n");
             response = server_close_window(server, command.window_id);
+            break;
+
+        case WRCMD_SET_WINDOW_DMA_BUF:
+            printf("  > WRCMD_SET_WINDOW_DMA_BUF\n");
+            response = server_set_window_dma_buf(server, command.window_id, command_fd, command.dma_buf);
             break;
 
         default:
