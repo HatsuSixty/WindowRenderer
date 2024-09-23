@@ -1,6 +1,7 @@
 #include "application.h"
 
 #include "renderer/opengl/gl_errors.h"
+#include "renderer/renderer.h"
 #include "session.h"
 
 #include <stdio.h>
@@ -59,7 +60,12 @@ void application_render(Application* application)
     server_lock_windows(application->server);
 
     for (size_t i = 0; i < application->server->windows_count; ++i) {
-        // Window* window = application->server->windows[i];
+        Window* window = application->server->windows[i];
+
+        renderer_draw_rectangle(application->renderer,
+                                (Vector2) { 0, 0 },
+                                (Vector2) { window->width, window->height },
+                                (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
 
         // Texture* texture = texture_create(window->pixels, window->width, window->height);
 

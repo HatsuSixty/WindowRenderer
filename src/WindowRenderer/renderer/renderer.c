@@ -216,3 +216,57 @@ void renderer_draw_texture_ex(Renderer* renderer, Texture* texture,
     renderer_bind_texture(renderer, renderer->default_texture);
     renderer_clear_buffers(renderer);
 }
+
+void renderer_draw_rectangle(Renderer* renderer,
+                             Vector2 position, Vector2 size, Vector4 color)
+{
+    Vector2 a = { position.x, position.y + size.y };
+    Vector2 b = { position.x + size.x, position.y + size.y };
+    Vector2 c = { position.x + size.x, position.y };
+    Vector2 d = position;
+
+    renderer_screen_to_ndc(renderer, &a);
+    renderer_screen_to_ndc(renderer, &b);
+    renderer_screen_to_ndc(renderer, &c);
+    renderer_screen_to_ndc(renderer, &d);
+
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+                                                           V2X(a),
+                                                           0.0f,
+                                                           0.0f,
+                                                           V4X(color),
+                                                       });
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+                                                           V2X(b),
+                                                           1.0f,
+                                                           0.0f,
+                                                           V4X(color),
+                                                       });
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+                                                           V2X(c),
+                                                           1.0f,
+                                                           1.0f,
+                                                           V4X(color),
+                                                       });
+    vertex_buffer_push_vertex(renderer->vertex_buffer, (Vertex) {
+                                                           V2X(d),
+                                                           0.0f,
+                                                           1.0f,
+                                                           V4X(color),
+                                                       });
+
+    // First triangle
+    index_buffer_push_index(renderer->index_buffer, 0);
+    index_buffer_push_index(renderer->index_buffer, 1);
+    index_buffer_push_index(renderer->index_buffer, 2);
+
+    // Second triangle
+    index_buffer_push_index(renderer->index_buffer, 2);
+    index_buffer_push_index(renderer->index_buffer, 3);
+    index_buffer_push_index(renderer->index_buffer, 0);
+
+    gl(DrawElements, GL_TRIANGLES, index_buffer_count(renderer->index_buffer),
+       GL_UNSIGNED_INT, NULL);
+
+    renderer_clear_buffers(renderer);
+}
