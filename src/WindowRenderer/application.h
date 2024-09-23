@@ -10,9 +10,6 @@
 typedef struct {
     Server* server;
     Renderer* renderer;
-    PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR;
-    PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR;
-    PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES;
 } Application;
 
 // Returns NULL on error

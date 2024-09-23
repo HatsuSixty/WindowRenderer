@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../glext.h"
 #include "gl_errors.h"
 
 Texture* texture_create(unsigned char* pixels, int width, int height)
@@ -30,8 +31,7 @@ Texture* texture_create(unsigned char* pixels, int width, int height)
     return texture;
 }
 
-Texture* texture_create_from_egl_imagekhr(EGLImageKHR egl_image, int width, int height,
-                                          PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES)
+Texture* texture_create_from_egl_imagekhr(EGLImageKHR egl_image, int width, int height)
 {
     Texture* texture = malloc(sizeof(*texture));
     memset(texture, 0, sizeof(*texture));

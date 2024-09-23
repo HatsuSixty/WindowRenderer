@@ -10,6 +10,7 @@ executable('WindowRenderer', [
   'renderer/opengl/index_buffer.c',
   'renderer/opengl/shader.c',
   'renderer/renderer.c',
+  'renderer/glext.c',
   'session.c',
   'main.c',
   'application.c',

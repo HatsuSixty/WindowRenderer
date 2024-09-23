@@ -13,8 +13,7 @@ typedef struct {
 } Texture;
 
 Texture* texture_create(unsigned char* pixels, int width, int height);
-Texture* texture_create_from_egl_imagekhr(EGLImageKHR egl_image, int width, int height,
-                                          PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES);
+Texture* texture_create_from_egl_imagekhr(EGLImageKHR egl_image, int width, int height);
 
 void texture_bind(Texture* texture, int slot);
 void texture_unbind(Texture* texture);

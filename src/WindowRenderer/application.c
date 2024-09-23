@@ -1,5 +1,6 @@
 #include "application.h"
 
+#include "renderer/glext.h"
 #include "renderer/opengl/gl_errors.h"
 #include "renderer/opengl/texture.h"
 #include "renderer/renderer.h"
@@ -9,9 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
 
 bool execute_command(int argc, char const** argv, int delay)
 {
@@ -52,25 +50,7 @@ Application* application_create(int argc, char const** argv)
     Application* application = malloc(sizeof(*application));
     memset(application, 0, sizeof(*application));
 
-    application->eglCreateImageKHR
-        = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
-    if (!application->eglCreateImageKHR) {
-        fprintf(stderr, "ERROR: support for the EGL function `eglCreateImageKHR` is required\n");
-        return NULL;
-    }
-
-    application->eglDestroyImageKHR
-        = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
-    if (!application->eglDestroyImageKHR) {
-        fprintf(stderr, "ERROR: support for the EGL function `eglDestroyImageKHR` is required\n");
-        return NULL;
-    }
-
-    application->glEGLImageTargetTexture2DOES
-        = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglGetProcAddress("glEGLImageTargetTexture2DOES");
-    if (!application->glEGLImageTargetTexture2DOES) {
-        fprintf(stderr,
-                "ERROR: support for the OpenGL function `glEGLImageTargetTexture2DOES` is required\n");
+    if (!glext_load_extensions()) {
         return NULL;
     }
 
@@ -144,10 +124,10 @@ void application_render(Application* application, EGLDisplay* egl_display)
                 EGL_NONE
             };
 
-            EGLImageKHR egl_image = application->eglCreateImageKHR(egl_display, EGL_NO_CONTEXT,
-                                                                   EGL_LINUX_DMA_BUF_EXT,
-                                                                   NULL,
-                                                                   image_attrs);
+            EGLImageKHR egl_image = eglCreateImageKHR(egl_display, EGL_NO_CONTEXT,
+                                                      EGL_LINUX_DMA_BUF_EXT,
+                                                      NULL,
+                                                      image_attrs);
             if (egl_image == EGL_NO_IMAGE_KHR) {
                 fprintf(stderr, "ERROR: could not create EGL image from DMA buffer\n");
                 continue;
@@ -155,8 +135,7 @@ void application_render(Application* application, EGLDisplay* egl_display)
 
             Texture* texture = texture_create_from_egl_imagekhr(egl_image,
                                                                 window->dma_buf.width,
-                                                                window->dma_buf.height,
-                                                                application->glEGLImageTargetTexture2DOES);
+                                                                window->dma_buf.height);
 
             renderer_draw_texture_ex(application->renderer,
                                      texture,
@@ -169,7 +148,7 @@ void application_render(Application* application, EGLDisplay* egl_display)
 
             texture_destroy(texture);
 
-            application->eglDestroyImageKHR(egl_display, egl_image);
+            eglDestroyImageKHR(egl_display, egl_image);
         }
     }
 
