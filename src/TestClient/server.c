@@ -12,19 +12,54 @@
 
 #include "WindowRenderer.h"
 
-static bool send_command(int sockfd, WindowRendererCommand command)
+static bool send_command(int sockfd, WindowRendererCommand command, int sent_fd)
 {
-    if (send(sockfd, &command, sizeof(command), 0) < 0) {
+    struct msghdr message_header = { 0 };
+
+    struct iovec io_vector = {
+        .iov_base = &command,
+        .iov_len = sizeof(command),
+    };
+    message_header.msg_iov = &io_vector;
+    message_header.msg_iovlen = 1;
+
+    if (sent_fd != -1) {
+        char control_message_buffer[CMSG_SPACE(sizeof(sent_fd))];
+        memset(control_message_buffer, 0, sizeof(control_message_buffer));
+
+        struct cmsghdr* control_message = (struct cmsghdr*)control_message_buffer;
+        control_message->cmsg_level = SOL_SOCKET;
+        control_message->cmsg_type = SCM_RIGHTS;
+        control_message->cmsg_len = CMSG_LEN(sizeof(sent_fd));
+
+        memcpy(CMSG_DATA(control_message), &sent_fd, sizeof(sent_fd));
+
+        message_header.msg_control = control_message;
+        message_header.msg_controllen = sizeof(control_message_buffer);
+    }
+
+    if (sendmsg(sockfd, &message_header, 0) == -1) {
         fprintf(stderr, "ERROR: could not send command to the server: %s\n",
                 strerror(errno));
         return false;
     }
+
     return true;
 }
 
 static bool recv_response(int sockfd, WindowRendererResponse* response)
 {
-    int num_of_bytes_recvd = recv(sockfd, response, sizeof(*response), 0);
+    struct msghdr message_header = { 0 };
+
+    struct iovec io_vector = {
+        .iov_base = response,
+        .iov_len = sizeof(*response)
+    };
+
+    message_header.msg_iov = &io_vector;
+    message_header.msg_iovlen = 1;
+
+    int num_of_bytes_recvd = recvmsg(sockfd, &message_header, 0);
 
     if (num_of_bytes_recvd <= 0) {
         fprintf(stderr, "ERROR: could not receive data from the server: %s\n",
@@ -93,7 +128,7 @@ int server_create_window(int serverfd, char const* title, int width, int height)
     command.window_height = height;
     memcpy(command.window_title, title, strlen(title));
 
-    if (!send_command(serverfd, command))
+    if (!send_command(serverfd, command, -1))
         return -1;
 
     WindowRendererResponse response;
@@ -112,7 +147,7 @@ bool server_close_window(int serverfd, int id)
     command.kind = WRCMD_CLOSE_WINDOW;
     command.window_id = id;
 
-    if (!send_command(serverfd, command))
+    if (!send_command(serverfd, command, -1))
         return false;
 
     WindowRendererResponse response;

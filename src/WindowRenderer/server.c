@@ -112,9 +112,24 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
     return response;
 }
 
-static bool receive_command(int client_fd, WindowRendererCommand* command)
+static bool receive_command(int client_fd, WindowRendererCommand* command, int* received_fd)
 {
-    int num_bytes_received = recv(client_fd, command, sizeof(*command), 0);
+    struct msghdr message_header = { 0 };
+
+    char control_message_buffer[CMSG_SPACE(sizeof(*received_fd))];
+    memset(control_message_buffer, 0, sizeof(control_message_buffer));
+
+    struct iovec io_vector = {
+        .iov_base = command,
+        .iov_len = sizeof(*command),
+    };
+    message_header.msg_iov = &io_vector;
+    message_header.msg_iovlen = 1;
+
+    message_header.msg_control = control_message_buffer;
+    message_header.msg_controllen = sizeof(control_message_buffer);
+
+    int num_bytes_received = recvmsg(client_fd, &message_header, 0);
 
     if (num_bytes_received == -1) {
         fprintf(stderr, "ERROR: could not receive bytes from socket: %s\n",
@@ -127,12 +142,35 @@ static bool receive_command(int client_fd, WindowRendererCommand* command)
         return false;
     }
 
+    if (message_header.msg_controllen > 0) {
+        struct cmsghdr* control_message = CMSG_FIRSTHDR(&message_header);
+        if (control_message
+            && control_message->cmsg_level == SOL_SOCKET
+            && control_message->cmsg_type == SCM_RIGHTS) {
+            memcpy(received_fd, CMSG_DATA(control_message), sizeof(*received_fd));
+        } else {
+            *received_fd = -1;
+        }
+    } else {
+        *received_fd = -1;
+    }
+
     return true;
 }
 
 static bool send_response(int client_fd, WindowRendererResponse response)
 {
-    if (send(client_fd, &response, sizeof(response), 0) == -1) {
+    struct msghdr message_header = { 0 };
+
+    struct iovec io_vector = {
+        .iov_base = &response,
+        .iov_len = sizeof(response),
+    };
+
+    message_header.msg_iov = &io_vector;
+    message_header.msg_iovlen = 1;
+
+    if (sendmsg(client_fd, &message_header, 0) == -1) {
         fprintf(stderr, "ERROR: could not send data to the client: %s\n",
                 strerror(errno));
         return false;
@@ -151,10 +189,11 @@ static void* server_handle_client(HandleClientInfo* info)
     Server* server = info->server;
     int cfd = info->client_fd;
 
-    WindowRendererCommand command;
-
     while (true) {
-        if (!receive_command(cfd, &command))
+        WindowRendererCommand command;
+        int command_fd;
+
+        if (!receive_command(cfd, &command, &command_fd))
             goto exit;
 
         WindowRendererResponse response = {
