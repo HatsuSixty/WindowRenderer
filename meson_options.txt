@@ -1,1 +1,0 @@
-option('desktop_debug_mode', type : 'boolean', value : false)
