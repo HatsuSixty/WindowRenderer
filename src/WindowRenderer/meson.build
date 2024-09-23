@@ -26,3 +26,5 @@ executable('WindowRenderer', [
   dependency('glesv2'),
   dependency('egl'),
 ])
+
+window_renderer_dep = declare_dependency(include_directories : window_renderer_inc)

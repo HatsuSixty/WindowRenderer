@@ -1,6 +1,6 @@
-#include "window.h"
+#include "LibWR/window.h"
 
-#include "server.h"
+#include "LibWR/server.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -16,7 +16,12 @@ Window* window_create(int serverfd, char const* title, int width, int height)
     Window* window = malloc(sizeof(*window));
     memset(window, 0, sizeof(*window));
 
+    // Set private state
     window->serverfd = serverfd;
+
+    // Set public state
+    window->width = width;
+    window->height = height;
 
     window->id = server_create_window(serverfd, title, width, height);
     if (window->id == -1) {
@@ -33,6 +38,13 @@ defer:
         return NULL;
     }
     return window;
+}
+
+bool window_set_dma_buf(Window* window, WindowDmaBuf dma_buf)
+{
+    if (!server_set_window_dma_buf(window->serverfd, window->id, dma_buf))
+        return false;
+    return true;
 }
 
 bool window_close(Window* window)

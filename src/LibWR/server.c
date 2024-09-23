@@ -1,7 +1,7 @@
-#include "server.h"
+#include "LibWR/server.h"
 
 #include "server_session.h"
-#include "window.h"
+#include "LibWR/window.h"
 
 #include <errno.h>
 #include <fcntl.h>
