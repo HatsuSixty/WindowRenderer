@@ -139,6 +139,7 @@ defer:
 
         return NULL;
     }
+
     return wrgl_context;
 }
 
