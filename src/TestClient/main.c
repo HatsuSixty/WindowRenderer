@@ -3,14 +3,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "LibWR/server.h"
-#include "LibWR/window.h"
+#include <libwr.h>
 
 #include <WRGL/buffer.h>
 #include <WRGL/context.h>
@@ -19,29 +17,31 @@
 
 int main(void)
 {
-    int serverfd = server_create();
+    int serverfd = wr_server_connect();
     if (serverfd == -1)
         return 1;
 
-    Window* window = window_create(serverfd, "Hello, World", 400, 400);
-    if (window == NULL) {
-        server_destroy(serverfd);
+    int width = 400;
+    int height = 400;
+    int window_id = wr_create_window(serverfd, "Hello, World", width, height);
+    if (window_id == -1) {
+        wr_server_disconnect(serverfd);
         return 1;
     }
 
-    WRGLBuffer* wrgl_buffer = wrgl_buffer_create_from_window(serverfd, window->id,
-                                                             window->width, window->height);
+    WRGLBuffer* wrgl_buffer = wrgl_buffer_create_from_window(serverfd, window_id,
+                                                             width, height);
     if (!wrgl_buffer) {
-        window_close(window);
-        server_destroy(serverfd);
+        wr_close_window(serverfd, window_id);
+        wr_server_disconnect(serverfd);
         return 1;
     }
 
     WRGLContext* wrgl_context = wrgl_context_create_for_buffer(wrgl_buffer);
     if (!wrgl_context) {
         wrgl_buffer_destroy(wrgl_buffer);
-        window_close(window);
-        server_destroy(serverfd);
+        wr_close_window(serverfd, window_id);
+        wr_server_disconnect(serverfd);
     }
 
     printf("Context created\n");
@@ -58,8 +58,8 @@ int main(void)
 
     wrgl_context_destroy(wrgl_context);
     wrgl_buffer_destroy(wrgl_buffer);
-    window_close(window);
-    server_destroy(serverfd);
+    wr_close_window(serverfd, window_id);
+    wr_server_disconnect(serverfd);
 
     return 0;
 }

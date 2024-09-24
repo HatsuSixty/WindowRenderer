@@ -1,7 +1,6 @@
-#include "LibWR/server.h"
+#include "libwr.h"
 
 #include "server_session.h"
-#include "LibWR/window.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -89,7 +88,7 @@ static bool is_response_valid(char const* command, WindowRendererResponseKind ex
     return true;
 }
 
-int server_create()
+int wr_server_connect()
 {
     if (!server_session_init()) {
         return -1;
@@ -116,12 +115,12 @@ int server_create()
     return sockfd;
 }
 
-void server_destroy(int serverfd)
+void wr_server_disconnect(int serverfd)
 {
     close(serverfd);
 }
 
-int server_create_window(int serverfd, char const* title, int width, int height)
+int wr_create_window(int serverfd, char const* title, int width, int height)
 {
     WindowRendererCommand command;
     command.kind = WRCMD_CREATE_WINDOW;
@@ -142,7 +141,7 @@ int server_create_window(int serverfd, char const* title, int width, int height)
     return response.window_id;
 }
 
-bool server_close_window(int serverfd, int id)
+bool wr_close_window(int serverfd, int id)
 {
     WindowRendererCommand command;
     command.kind = WRCMD_CLOSE_WINDOW;
@@ -161,7 +160,7 @@ bool server_close_window(int serverfd, int id)
     return true;
 }
 
-bool server_set_window_dma_buf(int serverfd, int window_id, WindowDmaBuf dma_buf)
+bool wr_set_window_dma_buf(int serverfd, int window_id, WRDmaBuf dma_buf)
 {
     WindowRendererCommand command;
     command.kind = WRCMD_SET_WINDOW_DMA_BUF;

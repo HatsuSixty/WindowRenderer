@@ -1,9 +1,8 @@
 libWR_inc = include_directories('include')
 
 libWR = library('WR', [
-  'server.c',
+  'libwr.c',
   'server_session.c',
-  'window.c',
 ], include_directories : [
   libWR_inc,
 ], dependencies : [

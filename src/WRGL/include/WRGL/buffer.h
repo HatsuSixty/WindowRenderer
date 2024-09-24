@@ -6,14 +6,14 @@
 #include <gbm.h>
 #include <EGL/egl.h>
 
-#include <LibWR/window.h>
+#include <libwr.h>
 
 typedef struct {
     int gpu_fd;
     struct gbm_device* gbm;
     struct gbm_bo* gbm_bo;
     EGLDisplay egl_display;
-    WindowDmaBuf dma_buf_info;
+    WRDmaBuf dma_buf_info;
 } WRGLBuffer;
 
 WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,

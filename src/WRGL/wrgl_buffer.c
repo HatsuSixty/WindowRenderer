@@ -13,7 +13,7 @@
 
 #include "glext.h"
 
-#include <LibWR/server.h>
+#include <libwr.h>
 
 WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
                                            int width, int height)
@@ -84,7 +84,7 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
     }
 
     // Get DMA buffer information
-    WindowDmaBuf window_dma_buf = {
+    WRDmaBuf window_dma_buf = {
         .fd = gbm_bo_get_fd(wrgl_buffer->gbm_bo),
         .width = gbm_bo_get_width(wrgl_buffer->gbm_bo),
         .height = gbm_bo_get_height(wrgl_buffer->gbm_bo),
@@ -93,7 +93,7 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
     };
 
     // Set DMA buffer for window
-    if (!server_set_window_dma_buf(serverfd, window_id, window_dma_buf)) {
+    if (!wr_set_window_dma_buf(serverfd, window_id, window_dma_buf)) {
         failed = true;
         goto defer;
     }
