@@ -1,5 +1,6 @@
 #include "WRGL/context.h"
 
+#include <EGL/eglext.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,13 +22,13 @@
         gl_check_errors(__FILE__, __LINE__); \
     } while (0);
 
-void gl_clear_errors()
+static void gl_clear_errors()
 {
     while (glGetError() != GL_NO_ERROR)
         ;
 }
 
-void gl_check_errors(const char* file, int line)
+static void gl_check_errors(const char* file, int line)
 {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR) {
@@ -36,7 +37,18 @@ void gl_check_errors(const char* file, int line)
     }
 }
 
-WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer)
+static EGLint wrgl_context_profile(WRGLContextProfile profile)
+{
+    switch (profile) {
+    case WRGL_PROFILE_CORE:
+        return EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT;
+    case WRGL_PROFILE_COMPATIBILITY:
+        return EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT;
+    }
+}
+
+WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
+                                            WRGLContextParameters context_parameters)
 {
     WRGLContext* wrgl_context = malloc(sizeof(*wrgl_context));
     memset(wrgl_context, 0, sizeof(*wrgl_context));
@@ -54,8 +66,26 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer)
     eglBindAPI(EGL_OPENGL_API);
 
     // Create EGL context
+    EGLint context_major_version
+        = context_parameters.major_version != 0 ? context_parameters.major_version : 1;
+    EGLint context_minor_version
+        = context_parameters.minor_version != 0 ? context_parameters.minor_version : 0;
+    EGLBoolean context_forward_compatible
+        = context_parameters.forward_compatible ? EGL_TRUE : EGL_FALSE;
+
+    EGLint context_attributes[] = {
+        EGL_CONTEXT_MAJOR_VERSION, context_major_version,
+        EGL_CONTEXT_MINOR_VERSION, context_minor_version,
+        EGL_CONTEXT_OPENGL_PROFILE_MASK, wrgl_context_profile(context_parameters.profile),
+        EGL_CONTEXT_OPENGL_DEBUG, context_parameters.debug ? EGL_TRUE : EGL_FALSE,
+        EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE, context_forward_compatible,
+        EGL_CONTEXT_OPENGL_ROBUST_ACCESS, context_parameters.robust_access ? EGL_TRUE : EGL_FALSE,
+        EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY, EGL_NO_RESET_NOTIFICATION,
+        EGL_NONE
+    };
+
     wrgl_context->egl_context = eglCreateContext(wrgl_context->egl_display,
-                                                 NULL, EGL_NO_CONTEXT, NULL);
+                                                 NULL, EGL_NO_CONTEXT, context_attributes);
     if (wrgl_context->egl_context == EGL_NO_CONTEXT) {
         fprintf(stderr, "ERROR: failed to create EGL context\n");
         failed = true;

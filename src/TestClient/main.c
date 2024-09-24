@@ -37,14 +37,21 @@ int main(void)
         return 1;
     }
 
-    WRGLContext* wrgl_context = wrgl_context_create_for_buffer(wrgl_buffer);
+    WRGLContextParameters context_parameters = {
+        .major_version = 3,
+        .minor_version = 3,
+        .profile = WRGL_PROFILE_CORE,
+        .debug = false,
+        .forward_compatible = false,
+        .robust_access = false,
+    };
+    WRGLContext* wrgl_context = wrgl_context_create_for_buffer(wrgl_buffer, context_parameters);
     if (!wrgl_context) {
         wrgl_buffer_destroy(wrgl_buffer);
         wr_close_window(serverfd, window_id);
         wr_server_disconnect(serverfd);
+        return 1;
     }
-
-    printf("Context created\n");
 
     const unsigned char* version = glGetString(GL_VERSION);
     printf("[INFO] Using OpenGL version %s\n", version);
