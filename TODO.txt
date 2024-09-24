@@ -2,3 +2,5 @@
 =========================
 
 * [server] Make the protocol better, split it into multiple header files for better organization
+* Update indications on which functions can fail
+* Proper logging system
