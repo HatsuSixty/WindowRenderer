@@ -98,7 +98,7 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
         goto defer;
     }
 
-    wrgl_buffer->dma_buf_info = window_dma_buf;
+    wrgl_buffer->dma_buf = window_dma_buf;
 
 defer:
     if (failed) {

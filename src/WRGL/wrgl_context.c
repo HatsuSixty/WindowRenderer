@@ -69,12 +69,12 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer)
 
     // Create EGL image out of the DMA buffer
     EGLint image_attrs[] = {
-        EGL_WIDTH, wrgl_buffer->dma_buf_info.width,
-        EGL_HEIGHT, wrgl_buffer->dma_buf_info.height,
-        EGL_LINUX_DRM_FOURCC_EXT, wrgl_buffer->dma_buf_info.format,
-        EGL_DMA_BUF_PLANE0_FD_EXT, wrgl_buffer->dma_buf_info.fd,
+        EGL_WIDTH, wrgl_buffer->dma_buf.width,
+        EGL_HEIGHT, wrgl_buffer->dma_buf.height,
+        EGL_LINUX_DRM_FOURCC_EXT, wrgl_buffer->dma_buf.format,
+        EGL_DMA_BUF_PLANE0_FD_EXT, wrgl_buffer->dma_buf.fd,
         EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
-        EGL_DMA_BUF_PLANE0_PITCH_EXT, wrgl_buffer->dma_buf_info.stride,
+        EGL_DMA_BUF_PLANE0_PITCH_EXT, wrgl_buffer->dma_buf.stride,
         EGL_NONE
     };
 

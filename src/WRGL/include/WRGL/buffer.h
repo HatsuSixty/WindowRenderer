@@ -13,7 +13,7 @@ typedef struct {
     struct gbm_device* gbm;
     struct gbm_bo* gbm_bo;
     EGLDisplay egl_display;
-    WRDmaBuf dma_buf_info;
+    WRDmaBuf dma_buf;
 } WRGLBuffer;
 
 WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
