@@ -1,9 +1,11 @@
 #include "WRGL/context.h"
 
-#include <EGL/eglext.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 #include "glext.h"
 
@@ -42,9 +44,48 @@ static EGLint wrgl_context_profile(WRGLContextProfile profile)
     switch (profile) {
     case WRGL_PROFILE_CORE:
         return EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT;
+
     case WRGL_PROFILE_COMPATIBILITY:
         return EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT;
     }
+}
+
+static EGLint wrgl_api_conformance(WRGLContextApiConformance api)
+{
+    switch (api) {
+    case WRGL_API_OPENGL:
+        return EGL_OPENGL_BIT;
+
+    case WRGL_API_OPENGL_ES_1:
+        return EGL_OPENGL_ES_BIT;
+
+    case WRGL_API_OPENGL_ES_2:
+        return EGL_OPENGL_ES2_BIT;
+
+    case WRGL_API_OPENGL_ES_3:
+        return EGL_OPENGL_ES3_BIT;
+
+    case WRGL_API_DONT_CARE:
+        return 0;
+    }
+}
+
+WRGLContextParameters wrgl_get_default_context_parameters()
+{
+    return (WRGLContextParameters) {
+        .major_version = 0,
+        .minor_version = 0,
+        .profile = WRGL_PROFILE_COMPATIBILITY,
+        .debug = false,
+        .forward_compatible = false,
+        .robust_access = false,
+
+        .api_conformance = WRGL_API_DONT_CARE,
+        .red_bit_size = 0,
+        .green_bit_size = 0,
+        .blue_bit_size = 0,
+        .alpha_bit_size = 0,
+    };
 }
 
 WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
@@ -62,8 +103,41 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
         goto defer;
     }
 
+    EGLenum opengl_api;
+    if (context_parameters.api_conformance == WRGL_API_OPENGL_ES_1
+        || context_parameters.api_conformance == WRGL_API_OPENGL_ES_2
+        || context_parameters.api_conformance == WRGL_API_OPENGL_ES_3)
+        opengl_api = EGL_OPENGL_ES_API;
+    else
+        opengl_api = EGL_OPENGL_API;
+
     // Bind OpenGL API
-    eglBindAPI(EGL_OPENGL_API);
+    if (eglBindAPI(opengl_api) == EGL_FALSE) {
+        fprintf(stderr, "ERROR: failed to set OpenGL API\n");
+        failed = true;
+        goto defer;
+    }
+
+    // Choose framebuffer configuration
+    EGLint frame_buffer_attributes[] = {
+        EGL_CONFORMANT, wrgl_api_conformance(context_parameters.api_conformance),
+        EGL_RED_SIZE, context_parameters.red_bit_size,
+        EGL_GREEN_SIZE, context_parameters.green_bit_size,
+        EGL_BLUE_SIZE, context_parameters.blue_bit_size,
+        EGL_ALPHA_SIZE, context_parameters.alpha_bit_size,
+        EGL_NONE
+    };
+
+    EGLConfig egl_config;
+    EGLint egl_config_size;
+
+    if (eglChooseConfig(wrgl_context->egl_display,
+                        frame_buffer_attributes, &egl_config, 1, &egl_config_size)
+        != EGL_TRUE) {
+        fprintf(stderr, "ERROR: failed to get EGL frame buffer configuration\n");
+        failed = true;
+        goto defer;
+    }
 
     // Create EGL context
     EGLint context_major_version
@@ -85,7 +159,7 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     };
 
     wrgl_context->egl_context = eglCreateContext(wrgl_context->egl_display,
-                                                 NULL, EGL_NO_CONTEXT, context_attributes);
+                                                 egl_config, EGL_NO_CONTEXT, context_attributes);
     if (wrgl_context->egl_context == EGL_NO_CONTEXT) {
         fprintf(stderr, "ERROR: failed to create EGL context\n");
         failed = true;

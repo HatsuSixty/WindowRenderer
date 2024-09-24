@@ -13,14 +13,32 @@ typedef enum {
     WRGL_PROFILE_COMPATIBILITY,
 } WRGLContextProfile;
 
+typedef enum {
+    WRGL_API_OPENGL,
+    WRGL_API_OPENGL_ES_1,
+    WRGL_API_OPENGL_ES_2,
+    WRGL_API_OPENGL_ES_3,
+    WRGL_API_DONT_CARE,
+} WRGLContextApiConformance;
+
 typedef struct {
+    // Context parameters
     int major_version;
     int minor_version;
     WRGLContextProfile profile;
     bool debug;
     bool forward_compatible;
     bool robust_access;
+
+    // Frame buffer parameters
+    WRGLContextApiConformance api_conformance;
+    int red_bit_size;
+    int green_bit_size;
+    int blue_bit_size;
+    int alpha_bit_size;
 } WRGLContextParameters;
+
+WRGLContextParameters wrgl_get_default_context_parameters();
 
 typedef struct {
     EGLContext egl_context;

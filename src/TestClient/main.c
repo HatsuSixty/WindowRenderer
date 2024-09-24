@@ -37,14 +37,8 @@ int main(void)
         return 1;
     }
 
-    WRGLContextParameters context_parameters = {
-        .major_version = 3,
-        .minor_version = 3,
-        .profile = WRGL_PROFILE_CORE,
-        .debug = false,
-        .forward_compatible = false,
-        .robust_access = false,
-    };
+    WRGLContextParameters context_parameters = wrgl_get_default_context_parameters();
+    context_parameters.api_conformance = WRGL_API_OPENGL_ES_2;
     WRGLContext* wrgl_context = wrgl_context_create_for_buffer(wrgl_buffer, context_parameters);
     if (!wrgl_context) {
         wrgl_buffer_destroy(wrgl_buffer);
