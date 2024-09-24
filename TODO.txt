@@ -1,6 +1,7 @@
  TODO
 =========================
 
+* [client] Cleanup LibWR
 * [client] Make WRGL better: Separate buffer creation and context setup, allow more context customization
 * [server] Disallow mismatch between buffer size and window size
 * [server] Make the protocol better, split it into multiple header files for better organization

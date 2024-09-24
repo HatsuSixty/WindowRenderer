@@ -12,7 +12,8 @@
 #include "LibWR/server.h"
 #include "LibWR/window.h"
 
-#include <wrgl.h>
+#include <WRGL/buffer.h>
+#include <WRGL/context.h>
 
 #include <GL/gl.h>
 
@@ -28,11 +29,22 @@ int main(void)
         return 1;
     }
 
-    WRGLContext* wrgl_context = wrgl_context_create_from_window(window);
-    if (wrgl_context == NULL) {
+    WRGLBuffer* wrgl_buffer = wrgl_buffer_create_from_window(serverfd, window->id,
+                                                             window->width, window->height);
+    if (!wrgl_buffer) {
+        window_close(window);
+        server_destroy(serverfd);
+        return 1;
+    }
+
+    WRGLContext* wrgl_context = wrgl_context_create_for_buffer(wrgl_buffer);
+    if (!wrgl_context) {
+        wrgl_buffer_destroy(wrgl_buffer);
         window_close(window);
         server_destroy(serverfd);
     }
+
+    printf("Context created\n");
 
     const unsigned char* version = glGetString(GL_VERSION);
     printf("[INFO] Using OpenGL version %s\n", version);
@@ -45,6 +57,7 @@ int main(void)
     sleep(10);
 
     wrgl_context_destroy(wrgl_context);
+    wrgl_buffer_destroy(wrgl_buffer);
     window_close(window);
     server_destroy(serverfd);
 

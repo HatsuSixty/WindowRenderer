@@ -155,7 +155,7 @@ bool server_close_window(int serverfd, int id)
     if (!recv_response(serverfd, &response))
         return false;
 
-    if (is_response_valid("close window", WRRESP_ERROR, response))
+    if (!is_response_valid("close window", WRRESP_ERROR, response))
         return false;
 
     return true;
@@ -180,7 +180,7 @@ bool server_set_window_dma_buf(int serverfd, int window_id, WindowDmaBuf dma_buf
     if (!recv_response(serverfd, &response))
         return false;
 
-    if (is_response_valid("set window DMA buffer", WRRESP_ERROR, response))
+    if (!is_response_valid("set window DMA buffer", WRRESP_ERROR, response))
         return false;
 
     return true;
