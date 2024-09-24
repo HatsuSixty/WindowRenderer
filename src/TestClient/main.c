@@ -38,7 +38,6 @@ int main(void)
     }
 
     WRGLContextParameters context_parameters = wrgl_get_default_context_parameters();
-    context_parameters.api_conformance = WRGL_API_OPENGL_ES_2;
     WRGLContext* wrgl_context = wrgl_context_create_for_buffer(wrgl_buffer, context_parameters);
     if (!wrgl_context) {
         wrgl_buffer_destroy(wrgl_buffer);

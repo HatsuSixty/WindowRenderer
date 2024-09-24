@@ -1,5 +1,4 @@
  TODO
 =========================
 
-* [server] Disallow mismatch between buffer size and window size
 * [server] Make the protocol better, split it into multiple header files for better organization

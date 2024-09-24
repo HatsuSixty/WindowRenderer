@@ -133,6 +133,12 @@ static WindowRendererResponse server_set_window_dma_buf(Server* server, int wind
                 break;
             }
 
+            if (dma_buf.width != server->windows[i]->width
+                || dma_buf.height != server->windows[i]->height) {
+                response.error_kind = WRERROR_INVALID_DMA_BUF_SIZE;
+                break;
+            }
+
             server->windows[i]->dma_buf = (WindowDmaBuf) {
                 .present = true,
                 .fd = dma_buf_fd,
