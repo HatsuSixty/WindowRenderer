@@ -1,5 +1,6 @@
 #include "application.h"
 
+#include "log.h"
 #include "renderer/glext.h"
 #include "renderer/opengl/gl_errors.h"
 #include "renderer/opengl/texture.h"
@@ -15,14 +16,14 @@ bool execute_command(int argc, char const** argv, int delay)
 {
     if (delay != 0) {
         for (int i = delay; i != 0; --i) {
-            printf("[INFO] Executing command in %d seconds\n", i);
+            log_log(LOG_INFO, "Executing command in %d seconds", i);
             sleep(1);
         }
     }
 
     pid_t pid = fork();
     if (pid == -1) {
-        fprintf(stderr, "ERROR: failed to fork child process\n");
+        log_log(LOG_ERROR, "Failed to fork child process");
         return false;
     }
 
@@ -34,7 +35,7 @@ bool execute_command(int argc, char const** argv, int delay)
         args[argc] = NULL;
 
         execvp(args[0], (char** const)args);
-        fprintf(stderr, "ERROR: failed to execute command `%s`\n", argv[0]);
+        log_log(LOG_ERROR, "Failed to execute command `%s`", argv[0]);
         return false;
     }
 
@@ -54,11 +55,11 @@ Application* application_create(int argc, char const** argv)
         return NULL;
     }
 
-    printf("Initializing WindowRenderer\n");
+    log_log(LOG_INFO, "Initializing WindowRenderer");
 
     session_init();
 
-    printf("Session hash: %s\n", session_get_hash());
+    log_log(LOG_INFO, "Session hash: %s", session_get_hash());
 
     application->server = server_create();
     if (!server_run(application->server))
@@ -129,7 +130,7 @@ void application_render(Application* application, EGLDisplay* egl_display)
                                                       NULL,
                                                       image_attrs);
             if (egl_image == EGL_NO_IMAGE_KHR) {
-                fprintf(stderr, "ERROR: could not create EGL image from DMA buffer\n");
+                log_log(LOG_ERROR, "Could not create EGL image from DMA buffer");
                 continue;
             }
 

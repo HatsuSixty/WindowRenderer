@@ -1,6 +1,7 @@
 #include "libwr.h"
 
 #include "server_session.h"
+#include "log.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -39,7 +40,7 @@ static bool send_command(int sockfd, WindowRendererCommand command, int sent_fd)
     }
 
     if (sendmsg(sockfd, &message_header, 0) == -1) {
-        fprintf(stderr, "ERROR: could not send command to the server: %s\n",
+        log_log(LOG_ERROR, "Could not send command to the server: %s",
                 strerror(errno));
         return false;
     }
@@ -62,7 +63,7 @@ static bool recv_response(int sockfd, WindowRendererResponse* response)
     int num_of_bytes_recvd = recvmsg(sockfd, &message_header, 0);
 
     if (num_of_bytes_recvd <= 0) {
-        fprintf(stderr, "ERROR: could not receive data from the server: %s\n",
+        log_log(LOG_ERROR, "Could not receive data from the server: %s",
                 strerror(errno));
         return false;
     }
@@ -74,18 +75,23 @@ static bool is_response_valid(char const* command, WindowRendererResponseKind ex
                               WindowRendererResponse response)
 {
     if (response.status != WRSTATUS_OK) {
-        fprintf(stderr, "ERROR: failed to %s: status %d\n", command,
+        log_log(LOG_ERROR, "Failed to %s: status %d", command,
                 response.status);
         return false;
     }
 
     if (response.kind != expected) {
-        fprintf(stderr, "ERROR: failed to %s: got unexpected response: response kind %d\n",
+        log_log(LOG_ERROR, "Failed to %s: got unexpected response: response kind %d",
                 command, response.kind);
         return false;
     }
 
     return true;
+}
+
+void wr_init(const char *program_name)
+{
+    log_init(program_name);
 }
 
 int wr_server_connect()
@@ -96,7 +102,7 @@ int wr_server_connect()
 
     int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd == -1) {
-        fprintf(stderr, "ERROR: could not open socket: %s\n", strerror(errno));
+        log_log(LOG_ERROR, "Could not open socket: %s", strerror(errno));
         return -1;
     }
 
@@ -107,7 +113,7 @@ int wr_server_connect()
             server_session_get_socket_name(), sizeof(addr.sun_path) - 1);
 
     if (connect(sockfd, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) == -1) {
-        fprintf(stderr, "ERROR: could not connect to socket: %s\n", strerror(errno));
+        log_log(LOG_ERROR, "Could not connect to socket: %s", strerror(errno));
         close(sockfd);
         return -1;
     }

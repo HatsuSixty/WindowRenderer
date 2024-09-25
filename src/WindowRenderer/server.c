@@ -13,6 +13,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "log.h"
 #include "session.h"
 #include "window.h"
 
@@ -168,13 +169,13 @@ static bool receive_command(int client_fd, WindowRendererCommand* command, int* 
     int num_bytes_received = recvmsg(client_fd, &message_header, 0);
 
     if (num_bytes_received == -1) {
-        fprintf(stderr, "ERROR: could not receive bytes from socket: %s\n",
+        log_log(LOG_ERROR, "Could not receive bytes from socket: %s",
                 strerror(errno));
         return false;
     }
 
     if (num_bytes_received == 0) {
-        fprintf(stderr, "[INFO] Connection closed by client\n");
+        log_log(LOG_INFO, "Connection closed by client");
         return false;
     }
 
@@ -207,7 +208,7 @@ static bool send_response(int client_fd, WindowRendererResponse response)
     message_header.msg_iovlen = 1;
 
     if (sendmsg(client_fd, &message_header, 0) == -1) {
-        fprintf(stderr, "ERROR: could not send data to the client: %s\n",
+        log_log(LOG_ERROR, "Could not send data to the client: %s",
                 strerror(errno));
         return false;
     }
@@ -237,12 +238,12 @@ static void* server_handle_client(HandleClientInfo* info)
             .status = WRSTATUS_OK,
         };
 
-        printf("[INFO] Received command\n");
+        log_log(LOG_INFO, "Received command");
 
         switch (command.kind) {
 
         case WRCMD_CREATE_WINDOW:
-            printf("  > WRCMD_CREATE_WINDOW\n");
+            log_log(LOG_INFO, "  > WRCMD_CREATE_WINDOW");
             response = server_create_window(server,
                                             command.command.create_window.title,
                                             command.command.create_window.width,
@@ -250,12 +251,12 @@ static void* server_handle_client(HandleClientInfo* info)
             break;
 
         case WRCMD_CLOSE_WINDOW:
-            printf("  > WRCMD_CLOSE_WINDOW\n");
+            log_log(LOG_INFO, "  > WRCMD_CLOSE_WINDOW");
             response = server_close_window(server, command.command.close_window.window_id);
             break;
 
         case WRCMD_SET_WINDOW_DMA_BUF:
-            printf("  > WRCMD_SET_WINDOW_DMA_BUF\n");
+            log_log(LOG_INFO, "  > WRCMD_SET_WINDOW_DMA_BUF");
             response = server_set_window_dma_buf(server,
                                                  command.command.set_window_dma_buf.window_id,
                                                  command.command.set_window_dma_buf.dma_buf,
@@ -263,7 +264,7 @@ static void* server_handle_client(HandleClientInfo* info)
             break;
 
         default:
-            printf("  => ERROR: unknown command `%d`\n", command.kind);
+            log_log(LOG_ERROR, "  => ERROR: unknown command `%d`", command.kind);
             response.status = WRSTATUS_INVALID_COMMAND;
         }
 
@@ -273,27 +274,27 @@ static void* server_handle_client(HandleClientInfo* info)
 
 exit:
     free(info);
-    printf("Exiting `handle_client` thread...\n");
+    log_log(LOG_INFO, "Exiting `handle_client` thread...");
     return NULL;
 }
 
 static void* server_listener(Server* server)
 {
     if (listen(server->socket, LISTEN_QUEUE) == -1) {
-        fprintf(stderr, "ERROR: could not listen to socket: %s\n",
+        log_log(LOG_ERROR, "Could not listen to socket: %s",
                 strerror(errno));
         goto exit;
     }
 
     while (true) {
-        printf("[INFO] Waiting for connection...\n");
+        log_log(LOG_INFO, "Waiting for connection...");
 
         struct sockaddr_un client_addr;
         socklen_t client_len = sizeof(client_addr);
         int client_fd = accept(server->socket, (struct sockaddr*)&client_addr,
                                &client_len);
         if (client_fd == -1) {
-            fprintf(stderr, "ERROR: could not accept connection: %s\n",
+            log_log(LOG_ERROR, "Could not accept connection: %s",
                     strerror(errno));
             continue;
         }
@@ -307,13 +308,13 @@ static void* server_listener(Server* server)
             = pthread_create(&handle_client_thread, NULL,
                              (void* (*)(void*)) & server_handle_client, info);
         if (status != 0) {
-            fprintf(stderr, "ERROR: could not create handle_client thread\n");
+            log_log(LOG_ERROR, "Could not create handle_client thread");
             continue;
         }
     }
 
 exit:
-    printf("Exiting `server_listener` thread...\n");
+    log_log(LOG_INFO, "Exiting `server_listener` thread...");
     return NULL;
 }
 
@@ -321,7 +322,7 @@ bool server_run(Server* server)
 {
     if (file_exists(server->socket_path)) {
         if (unlink(server->socket_path) != 0) {
-            fprintf(stderr, "ERROR: could not delete `%s`: %s\n",
+            log_log(LOG_ERROR, "Could not delete `%s`: %s",
                     server->socket_path, strerror(errno));
             return false;
         }
@@ -329,7 +330,8 @@ bool server_run(Server* server)
 
     server->socket = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server->socket == -1) {
-        fprintf(stderr, "ERROR: could not create socket: %s\n", strerror(errno));
+        log_log(LOG_ERROR, "Could not create socket: %s",
+                strerror(errno));
         return false;
     }
 
@@ -345,7 +347,7 @@ bool server_run(Server* server)
     int bind_result = bind(server->socket, (struct sockaddr*)&server_addr,
                            sizeof(server_addr));
     if (bind_result == -1) {
-        fprintf(stderr, "ERROR: could not bind socket: %s\n", strerror(errno));
+        log_log(LOG_ERROR, "Could not bind socket: %s", strerror(errno));
         close(server->socket);
         return false;
     }
@@ -353,7 +355,7 @@ bool server_run(Server* server)
     int status = pthread_create(&server->listener_thread, NULL,
                                 (void* (*)(void*)) & server_listener, server);
     if (status != 0) {
-        fprintf(stderr, "ERROR: could not create listener thread\n");
+        log_log(LOG_ERROR, "Could not create listener thread");
         close(server->socket);
         return false;
     }

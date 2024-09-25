@@ -7,6 +7,7 @@
 
 #include <GLES2/gl2.h>
 
+#include "log.h"
 #include "gl_errors.h"
 
 static GLuint compile_shader(GLenum type, const char* source)
@@ -27,9 +28,9 @@ static GLuint compile_shader(GLenum type, const char* source)
         char* error = (char*)alloca(error_length);
         gl(GetShaderInfoLog, id, error_length, &error_length, error);
 
-        const char* shader_type = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
+        const char* shader_type = type == GL_VERTEX_SHADER ? "Vertex" : "Fragment";
 
-        fprintf(stderr, "ERROR: %s shader compilation: %s\n", shader_type, error);
+        log_log(LOG_ERROR, "%s shader compilation: %s", shader_type, error);
 
         gl(DeleteShader, id);
 
@@ -67,14 +68,14 @@ Shader* shader_create(const char* vertex_source, const char* fragment_source)
 
     GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, vertex_source);
     if (vert_shader == 0) {
-        fprintf(stderr, "ERROR: failed to compile vertex shader\n");
+        log_log(LOG_ERROR, "Failed to compile vertex shader");
         gl(DeleteProgram, shader->id);
         return NULL;
     }
 
     GLuint frag_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_source);
     if (frag_shader == 0) {
-        fprintf(stderr, "ERROR: failed to compile fragment shader\n");
+        log_log(LOG_ERROR, "Failed to compile fragment shader");
         gl(DeleteProgram, shader->id);
         return NULL;
     }

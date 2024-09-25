@@ -11,6 +11,8 @@ typedef struct {
     int stride;
 } WRDmaBuf;
 
+void wr_init(char const* program_name);
+
 // Returns -1 on error, otherwise returns serverfd
 int wr_server_connect();
 void wr_server_disconnect(int serverfd);

@@ -1,8 +1,8 @@
 #include "gl_errors.h"
 
-#include <stdio.h>
-
 #include <GLES2/gl2.h>
+
+#include "log.h"
 
 void gl_clear_errors()
 {
@@ -14,7 +14,7 @@ void gl_check_errors(const char* file, int line)
 {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR) {
-        printf("%s:%d: ERROR: OpenGL error: error code 0x%X\n",
-               file, line, error);
+        log_log(LOG_ERROR, "%s:%d: OpenGL error: error code 0x%X",
+                file, line, error);
     }
 }

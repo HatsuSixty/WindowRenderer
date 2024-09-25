@@ -8,6 +8,8 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
+#include "log.h"
+
 bool WRGL_extensions_loaded = false;
 
 PFNEGLGETPLATFORMDISPLAYEXTPROC WRGL_eglGetPlatformDisplayEXT = NULL;
@@ -15,14 +17,14 @@ PFNEGLCREATEIMAGEKHRPROC WRGL_eglCreateImageKHR = NULL;
 PFNEGLDESTROYIMAGEKHRPROC WRGL_eglDestroyImageKHR = NULL;
 PFNGLEGLIMAGETARGETTEXTURE2DOESPROC WRGL_glEGLImageTargetTexture2DOES = NULL;
 
-#define LOAD_PROC(variable, proc)                                                \
-    do {                                                                         \
-        variable = (typeof(variable))eglGetProcAddress(#proc);                   \
-        if (!variable) {                                                         \
-            fprintf(stderr, "ERROR: support for the function `" #proc "` is "    \
-                            "required, but the function could not be loaded\n"); \
-            return false;                                                        \
-        }                                                                        \
+#define LOAD_PROC(variable, proc)                                                 \
+    do {                                                                          \
+        variable = (typeof(variable))eglGetProcAddress(#proc);                    \
+        if (!variable) {                                                          \
+            log_log(LOG_ERROR, "Support for the function `" #proc "` is "         \
+                               "required, but the function could not be loaded"); \
+            return false;                                                         \
+        }                                                                         \
     } while (0);
 
 bool glext_load_extensions()

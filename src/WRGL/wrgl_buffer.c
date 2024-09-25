@@ -8,10 +8,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <gbm.h>
 #include <EGL/egl.h>
+#include <gbm.h>
 
 #include "glext.h"
+#include "log.h"
 
 #include <libwr.h>
 
@@ -31,7 +32,7 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
     // Open graphics card device
     wrgl_buffer->gpu_fd = open("/dev/dri/card1", O_RDWR | O_CLOEXEC);
     if (wrgl_buffer->gpu_fd == -1) {
-        fprintf(stderr, "ERROR: could not open graphics card device: %s\n",
+        log_log(LOG_ERROR, "Could not open graphics card device: %s",
                 strerror(errno));
         failed = true;
         goto defer;
@@ -40,7 +41,7 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
     // Create GBM device
     wrgl_buffer->gbm = gbm_create_device(wrgl_buffer->gpu_fd);
     if (!wrgl_buffer->gbm) {
-        fprintf(stderr, "ERROR: failed to create GBM device\n");
+        log_log(LOG_ERROR, "Failed to create GBM device");
         failed = true;
         goto defer;
     }
@@ -50,8 +51,8 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
     if (!gbm_device_is_format_supported(wrgl_buffer->gbm,
                                         GBM_FORMAT_XRGB8888,
                                         GBM_BO_USE_RENDERING | GBM_BO_USE_LINEAR)) {
-        fprintf(stderr, "ERROR: `GBM_FORMAT_XRGB8888` "
-                        "and `GBM_BO_USE_RENDERING` | `GBM_BO_USE_LINEAR` is not a supported format\n");
+        log_log(LOG_ERROR, "ERROR: `GBM_FORMAT_XRGB8888` "
+                           "and `GBM_BO_USE_RENDERING` | `GBM_BO_USE_LINEAR` is not a supported format");
         failed = true;
         goto defer;
     }
@@ -62,7 +63,7 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
                                         GBM_FORMAT_XRGB8888,
                                         GBM_BO_USE_RENDERING | GBM_BO_USE_LINEAR);
     if (!wrgl_buffer->gbm_bo) {
-        fprintf(stderr, "ERROR: failed to create GBM buffer object\n");
+        log_log(LOG_ERROR, "Failed to create GBM buffer object");
         failed = true;
         goto defer;
     }
@@ -71,14 +72,14 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
     wrgl_buffer->egl_display = WRGL_eglGetPlatformDisplayEXT(EGL_PLATFORM_GBM_MESA,
                                                              wrgl_buffer->gbm, NULL);
     if (wrgl_buffer->egl_display == EGL_NO_DISPLAY) {
-        fprintf(stderr, "ERROR: failed to get EGL display\n");
+        log_log(LOG_ERROR, "Failed to get EGL display");
         failed = true;
         goto defer;
     }
 
     // Initialize EGL display
     if (eglInitialize(wrgl_buffer->egl_display, NULL, NULL) != EGL_TRUE) {
-        fprintf(stderr, "ERROR: failed to initialize EGL display\n");
+        log_log(LOG_ERROR, "Failed to initialize EGL display");
         failed = true;
         goto defer;
     }

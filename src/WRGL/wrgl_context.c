@@ -8,6 +8,7 @@
 #include <EGL/eglext.h>
 
 #include "glext.h"
+#include "log.h"
 
 // Error checking system
 #define gl(name, ...)                        \
@@ -34,8 +35,8 @@ static void gl_check_errors(const char* file, int line)
 {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR) {
-        printf("%s:%d: ERROR: OpenGL error: error code 0x%X\n",
-               file, line, error);
+        log_log(LOG_ERROR, "%s:%d: OpenGL error: error code 0x%X",
+                file, line, error);
     }
 }
 
@@ -113,7 +114,7 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
 
     // Bind OpenGL API
     if (eglBindAPI(opengl_api) == EGL_FALSE) {
-        fprintf(stderr, "ERROR: failed to set OpenGL API\n");
+        log_log(LOG_ERROR, "Failed to set OpenGL API");
         failed = true;
         goto defer;
     }
@@ -134,7 +135,7 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     if (eglChooseConfig(wrgl_context->egl_display,
                         frame_buffer_attributes, &egl_config, 1, &egl_config_size)
         != EGL_TRUE) {
-        fprintf(stderr, "ERROR: failed to get EGL frame buffer configuration\n");
+        log_log(LOG_ERROR, "Failed to get EGL frame buffer configuration");
         failed = true;
         goto defer;
     }
@@ -161,7 +162,7 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     wrgl_context->egl_context = eglCreateContext(wrgl_context->egl_display,
                                                  egl_config, EGL_NO_CONTEXT, context_attributes);
     if (wrgl_context->egl_context == EGL_NO_CONTEXT) {
-        fprintf(stderr, "ERROR: failed to create EGL context\n");
+        log_log(LOG_ERROR, "Failed to create EGL context");
         failed = true;
         goto defer;
     }
@@ -185,7 +186,7 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     wrgl_context->egl_image = WRGL_eglCreateImageKHR(wrgl_context->egl_display, EGL_NO_CONTEXT,
                                                      EGL_LINUX_DMA_BUF_EXT, NULL, image_attrs);
     if (wrgl_context->egl_image == EGL_NO_IMAGE_KHR) {
-        fprintf(stderr, "ERROR: could not create EGL image from GBM buffer\n");
+        log_log(LOG_ERROR, "Could not create EGL image from GBM buffer");
         failed = true;
         goto defer;
     }
@@ -216,14 +217,14 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     GLuint framebuffer_status;
     gl_call(framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
     if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE) {
-        fprintf(stderr, "ERROR: OpenGL framebuffer is not complete\n");
+        log_log(LOG_ERROR, "OpenGL framebuffer is not complete");
         failed = true;
         goto defer;
     }
 
     // Initialization complete!
     // The user may now use the available OpenGL context
-    printf("[INFO] WRGL context initialized\n");
+    log_log(LOG_INFO, "WRGL context initialized");
 
 defer:
     if (failed) {

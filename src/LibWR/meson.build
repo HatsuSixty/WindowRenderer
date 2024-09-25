@@ -3,6 +3,7 @@ libWR_inc = include_directories('include')
 libWR = library('WR', [
   'libwr.c',
   'server_session.c',
+  'log.c',
 ], include_directories : [
   libWR_inc,
 ], dependencies : [

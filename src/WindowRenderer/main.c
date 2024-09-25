@@ -15,6 +15,7 @@
 #include <EGL/egl.h>
 
 #include "application.h"
+#include "log.h"
 
 bool should_quit = false;
 
@@ -109,7 +110,7 @@ static void connector_plugged_event_handler(SRMListener* listener, SRMConnector*
     Application* application = srmListenerGetUserData(listener);
 
     if (!srmConnectorInitialize(connector, &connector_interface, application))
-        fprintf(stderr, "ERROR: failed to initialize connector %s.",
+        log_log(LOG_ERROR, "Failed to initialize connector %s",
                 srmConnectorGetModel(connector));
 }
 
@@ -127,6 +128,8 @@ void ctrl_c(int signo)
 
 int main(int argc, char const** argv)
 {
+    log_init(argv[0]);
+
     signal(SIGINT, ctrl_c);
 
     Application* application = application_create(argc, argv);
@@ -137,7 +140,7 @@ int main(int argc, char const** argv)
     srmCoreSetUserData(core, application);
 
     if (!core) {
-        fprintf(stderr, "ERROR: could not initialize SRM core\n");
+        log_log(LOG_ERROR, "Could not initialize SRM core");
         return 1;
     }
 
@@ -160,7 +163,7 @@ int main(int argc, char const** argv)
 
             if (srmConnectorIsConnected(connector)) {
                 if (!srmConnectorInitialize(connector, &connector_interface, application))
-                    fprintf(stderr, "ERROR: failed to initialize connector %s\n",
+                    log_log(LOG_ERROR, "Failed to initialize connector %s",
                             srmConnectorGetModel(connector));
             }
         }

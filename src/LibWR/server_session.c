@@ -1,5 +1,7 @@
 #include "server_session.h"
 
+#include "log.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,8 +27,8 @@ bool server_session_init()
 {
     session_hash = getenv(WR_SESSION_HASH_ENV);
     if (!session_hash) {
-        fprintf(stderr, "ERROR: could not get `%s` environment variable\n", WR_SESSION_HASH_ENV);
-        fprintf(stderr, "Is the server running?\n");
+        log_log(LOG_ERROR, "Could not get `%s` environment variable", WR_SESSION_HASH_ENV);
+        log_log(LOG_ERROR, "Is the server running?");
         return false;
     }
 

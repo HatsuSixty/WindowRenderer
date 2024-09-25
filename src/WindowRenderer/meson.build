@@ -16,6 +16,7 @@ executable('WindowRenderer', [
   'application.c',
   'server.c',
   'window.c',
+  'log.c',
 ], include_directories : [
   window_renderer_inc,
 ], dependencies : [
