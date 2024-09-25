@@ -1,6 +1,6 @@
 #include "server.h"
 
-#include "WindowRenderer.h"
+#include "WindowRenderer/windowrenderer.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -55,20 +55,18 @@ static WindowRendererResponse server_create_window(Server* server,
     server_lock_windows(server);
 
     WindowRendererResponse response = {
-        .kind = WRRESP_ERROR,
-        .error_kind = WRERROR_OK,
+        .kind = WRRESP_EMPTY,
+        .status = WRSTATUS_OK,
     };
 
     Window* window = window_create(title, width, height);
 
     if (window != NULL) {
         server->windows[server->windows_count++] = window;
-        response = (WindowRendererResponse) {
-            .kind = WRRESP_WINID,
-            .window_id = window->id,
-        };
+        response.kind = WRRESP_WINID;
+        response.response.window_id = window->id;
     } else {
-        response.error_kind = WRERROR_CREATE_FAILED;
+        response.status = WRSTATUS_CREATE_FAILED;
     }
 
     server_unlock_windows(server);
@@ -81,8 +79,8 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
     server_lock_windows(server);
 
     WindowRendererResponse response = {
-        .kind = WRRESP_ERROR,
-        .error_kind = WRERROR_OK,
+        .kind = WRRESP_EMPTY,
+        .status = WRSTATUS_OK,
     };
 
     bool id_valid = false;
@@ -92,7 +90,7 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
             id_valid = true;
 
             if (!window_destroy(server->windows[i])) {
-                response.error_kind = WRERROR_CLOSE_FAILED;
+                response.status = WRSTATUS_CLOSE_FAILED;
                 break;
             }
 
@@ -106,20 +104,20 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
     }
 
     if (!id_valid)
-        response.error_kind = WRERROR_INVALID_WINID;
+        response.status = WRSTATUS_INVALID_WINID;
 
     server_unlock_windows(server);
     return response;
 }
 
 static WindowRendererResponse server_set_window_dma_buf(Server* server, int window_id,
-                                                        int dma_buf_fd, WindowRendererDmaBuf dma_buf)
+                                                        WindowRendererDmaBuf dma_buf, int dma_buf_fd)
 {
     server_lock_windows(server);
 
     WindowRendererResponse response = {
-        .kind = WRRESP_ERROR,
-        .error_kind = WRERROR_OK,
+        .kind = WRRESP_EMPTY,
+        .status = WRSTATUS_OK,
     };
 
     bool id_valid = false;
@@ -129,13 +127,13 @@ static WindowRendererResponse server_set_window_dma_buf(Server* server, int wind
             id_valid = true;
 
             if (dma_buf_fd == -1) {
-                response.error_kind = WRERROR_INVALID_DMA_BUF_FD;
+                response.status = WRSTATUS_INVALID_DMA_BUF_FD;
                 break;
             }
 
             if (dma_buf.width != server->windows[i]->width
                 || dma_buf.height != server->windows[i]->height) {
-                response.error_kind = WRERROR_INVALID_DMA_BUF_SIZE;
+                response.status = WRSTATUS_INVALID_DMA_BUF_SIZE;
                 break;
             }
 
@@ -153,7 +151,7 @@ static WindowRendererResponse server_set_window_dma_buf(Server* server, int wind
     }
 
     if (!id_valid)
-        response.error_kind = WRERROR_INVALID_WINID;
+        response.status = WRSTATUS_INVALID_WINID;
 
     server_unlock_windows(server);
     return response;
@@ -244,8 +242,8 @@ static void* server_handle_client(HandleClientInfo* info)
             goto exit;
 
         WindowRendererResponse response = {
-            .kind = WRRESP_ERROR,
-            .error_kind = WRERROR_OK,
+            .kind = WRRESP_EMPTY,
+            .status = WRSTATUS_OK,
         };
 
         printf("[INFO] Received command\n");
@@ -255,23 +253,27 @@ static void* server_handle_client(HandleClientInfo* info)
         case WRCMD_CREATE_WINDOW:
             printf("  > WRCMD_CREATE_WINDOW\n");
             response = server_create_window(server,
-                                            command.window_title, command.window_width,
-                                            command.window_height);
+                                            command.command.create_window.title,
+                                            command.command.create_window.width,
+                                            command.command.create_window.height);
             break;
 
         case WRCMD_CLOSE_WINDOW:
             printf("  > WRCMD_CLOSE_WINDOW\n");
-            response = server_close_window(server, command.window_id);
+            response = server_close_window(server, command.command.close_window.window_id);
             break;
 
         case WRCMD_SET_WINDOW_DMA_BUF:
             printf("  > WRCMD_SET_WINDOW_DMA_BUF\n");
-            response = server_set_window_dma_buf(server, command.window_id, command_fd, command.dma_buf);
+            response = server_set_window_dma_buf(server,
+                                                 command.command.set_window_dma_buf.window_id,
+                                                 command.command.set_window_dma_buf.dma_buf,
+                                                 command_fd);
             break;
 
         default:
             printf("  => ERROR: unknown command `%d`\n", command.kind);
-            response.error_kind = WRERROR_INVALID_COMMAND;
+            response.status = WRSTATUS_INVALID_COMMAND;
         }
 
         if (!send_response(cfd, response))

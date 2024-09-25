@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "WindowRenderer.h"
+#include "WindowRenderer/windowrenderer.h"
 
 #define STRING_STORE_CAP 102400
 char string_store[STRING_STORE_CAP] = { 0 };
