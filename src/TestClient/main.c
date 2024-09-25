@@ -19,8 +19,8 @@
 int main(int argc, char const** argv)
 {
     (void)argc;
-    wr_init(argv[0]);
-    wrgl_init(argv[0]);
+    wr_log_init(argv[0]);
+    wrgl_log_init(argv[0]);
 
     int serverfd = wr_server_connect();
     if (serverfd == -1)

@@ -2,7 +2,7 @@
 
 #include "log.h"
 
-void wrgl_init(char const* program_name)
+void wrgl_log_init(char const* program_name)
 {
     log_init(program_name);
 }

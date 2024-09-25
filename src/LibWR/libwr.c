@@ -5,7 +5,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -89,7 +88,7 @@ static bool is_response_valid(char const* command, WindowRendererResponseKind ex
     return true;
 }
 
-void wr_init(const char *program_name)
+void wr_log_init(const char *program_name)
 {
     log_init(program_name);
 }
