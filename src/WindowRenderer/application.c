@@ -14,13 +14,6 @@
 
 bool execute_command(int argc, char const** argv, int delay)
 {
-    if (delay != 0) {
-        for (int i = delay; i != 0; --i) {
-            log_log(LOG_INFO, "Executing command in %d seconds", i);
-            sleep(1);
-        }
-    }
-
     pid_t pid = fork();
     if (pid == -1) {
         log_log(LOG_ERROR, "Failed to fork child process");
@@ -28,6 +21,13 @@ bool execute_command(int argc, char const** argv, int delay)
     }
 
     if (pid == 0) {
+        if (delay != 0) {
+            for (int i = delay; i != 0; --i) {
+                log_log(LOG_INFO, "Executing command in %d seconds", i);
+                sleep(1);
+            }
+        }
+
         char const* args[argc + 1];
         for (int i = 0; i < argc; ++i) {
             args[i] = argv[i];
