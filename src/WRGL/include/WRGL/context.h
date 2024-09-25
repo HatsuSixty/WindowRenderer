@@ -41,12 +41,13 @@ typedef struct {
 WRGLContextParameters wrgl_get_default_context_parameters();
 
 typedef struct {
+    EGLDisplay egl_display;
     EGLContext egl_context;
     EGLImageKHR egl_image;
-    EGLDisplay egl_display;
 
-    GLuint gl_framebuffer_object;
     GLuint gl_texture;
+    GLuint gl_framebuffer_object;
+    GLuint gl_renderbuffer_object;
 } WRGLContext;
 
 WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,

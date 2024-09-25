@@ -214,9 +214,45 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     gl(FramebufferTexture2D, GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
        wrgl_context->gl_texture, 0);
 
-    GLuint framebuffer_status;
-    gl_call(framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
-    if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE) {
+    GLuint framebuffer_status1;
+    gl_call(framebuffer_status1 = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+    if (framebuffer_status1 != GL_FRAMEBUFFER_COMPLETE) {
+        log_log(LOG_ERROR, "OpenGL framebuffer is not complete");
+        failed = true;
+        goto defer;
+    }
+
+    // Check support for packed depth + stencil renderbuffer
+    char const* opengl_extensions = (char const*)glGetString(GL_EXTENSIONS);
+    if (!(opengl_extensions
+          && (strstr(opengl_extensions, "GL_EXT_packed_depth_stencil")
+              || strstr(opengl_extensions, "GL_OES_packed_depth_stencil")))) {
+        log_log(LOG_ERROR, "Support for the EGL extension `GL_EXT_packed_depth_stencil` "
+                           "is required, but the extension is not in the supported extension list");
+        failed = true;
+        goto defer;
+    }
+
+    // Create OpenGL depth/stencil renderbuffer and attach it to the framebuffer
+    gl(GenRenderbuffers, 1, &wrgl_context->gl_renderbuffer_object);
+    gl(BindRenderbuffer, GL_RENDERBUFFER, wrgl_context->gl_renderbuffer_object);
+    gl(RenderbufferStorage, GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, wrgl_buffer->dma_buf.width,
+       wrgl_buffer->dma_buf.height);
+    gl(FramebufferRenderbuffer, GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
+       wrgl_context->gl_renderbuffer_object);
+
+    gl(FramebufferRenderbuffer, GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
+       wrgl_context->gl_renderbuffer_object);
+    gl(FramebufferRenderbuffer, GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+       wrgl_context->gl_renderbuffer_object);
+
+    // Unbind renderbuffer
+    gl(BindRenderbuffer, GL_RENDERBUFFER, 0);
+
+    // Check framebuffer status again
+    GLuint framebuffer_status2;
+    gl_call(framebuffer_status2 = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+    if (framebuffer_status2 != GL_FRAMEBUFFER_COMPLETE) {
         log_log(LOG_ERROR, "OpenGL framebuffer is not complete");
         failed = true;
         goto defer;
@@ -228,6 +264,9 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
 
 defer:
     if (failed) {
+        if (wrgl_context->gl_renderbuffer_object != 0)
+            gl(DeleteRenderbuffers, 1, &wrgl_context->gl_renderbuffer_object);
+
         if (wrgl_context->gl_framebuffer_object != 0)
             gl(DeleteFramebuffers, 1, &wrgl_context->gl_framebuffer_object);
 
@@ -250,6 +289,7 @@ defer:
 
 void wrgl_context_destroy(WRGLContext* wrgl_context)
 {
+    gl(DeleteRenderbuffers, 1, &wrgl_context->gl_renderbuffer_object);
     gl(DeleteFramebuffers, 1, &wrgl_context->gl_framebuffer_object);
     gl(DeleteTextures, 1, &wrgl_context->gl_texture);
 
