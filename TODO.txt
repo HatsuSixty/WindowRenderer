@@ -1,5 +1,4 @@
  TODO
 =========================
 
-* Update indications on which functions can fail
 * Proper logging system

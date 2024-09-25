@@ -36,8 +36,6 @@ typedef struct {
 } WindowRendererCommand;
 
 typedef enum {
-    WRSTATUS_CLOSE_FAILED,
-    WRSTATUS_CREATE_FAILED,
     WRSTATUS_INVALID_COMMAND,
     WRSTATUS_INVALID_WINID,
     WRSTATUS_INVALID_DMA_BUF_FD,

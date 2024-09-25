@@ -22,8 +22,7 @@ Window* window_create(char const* title, int width, int height)
     return window;
 }
 
-bool window_destroy(Window* window)
+void window_destroy(Window* window)
 {
     free(window);
-    return true;
 }

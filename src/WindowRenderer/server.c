@@ -54,20 +54,16 @@ static WindowRendererResponse server_create_window(Server* server,
 {
     server_lock_windows(server);
 
-    WindowRendererResponse response = {
-        .kind = WRRESP_EMPTY,
-        .status = WRSTATUS_OK,
-    };
-
     Window* window = window_create(title, width, height);
+    server->windows[server->windows_count++] = window;
 
-    if (window != NULL) {
-        server->windows[server->windows_count++] = window;
-        response.kind = WRRESP_WINID;
-        response.response.window_id = window->id;
-    } else {
-        response.status = WRSTATUS_CREATE_FAILED;
-    }
+    WindowRendererResponse response = {
+        .kind = WRRESP_WINID,
+        .status = WRSTATUS_OK,
+        .response = {
+            .window_id = window->id,
+        },
+    };
 
     server_unlock_windows(server);
 
@@ -88,11 +84,6 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
     for (size_t i = 0; i < server->windows_count; i++) {
         if (server->windows[i]->id == window_id) {
             id_valid = true;
-
-            if (!window_destroy(server->windows[i])) {
-                response.status = WRSTATUS_CLOSE_FAILED;
-                break;
-            }
 
             if (i < server->windows_count - 1) {
                 memmove(&server->windows[i], &server->windows[i + 1], sizeof(void*));
