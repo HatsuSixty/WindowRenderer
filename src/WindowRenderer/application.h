@@ -1,5 +1,5 @@
-#ifndef WR_APPLICATION_H_
-#define WR_APPLICATION_H_
+#ifndef APPLICATION_H_
+#define APPLICATION_H_
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -24,4 +24,4 @@ void application_resize(Application* application, int width, int height);
 
 void application_render(Application* application, EGLDisplay* egl_display);
 
-#endif // WR_APPLICATION_H_
+#endif // APPLICATION_H_

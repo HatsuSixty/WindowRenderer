@@ -1,5 +1,5 @@
-#ifndef WR_SERVER_H_
-#define WR_SERVER_H_
+#ifndef SERVER_H_
+#define SERVER_H_
 
 #include <pthread.h>
 #include <stddef.h>
@@ -29,4 +29,4 @@ bool server_run(Server* server);
 void server_lock_windows(Server* server);
 void server_unlock_windows(Server* server);
 
-#endif // WR_SERVER_H_
+#endif // SERVER_H_
