@@ -1,45 +1,45 @@
 #include "log.h"
 
+#include <libgen.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <string.h>
 
-LogLevel log_log_level = LOG_WARNING;
-char const* log_program_name = NULL;
-
-void log_init(char const* program_name)
+static void get_process_name(char* restrict buf, size_t len)
 {
-    log_program_name = program_name;
-}
+    char exe_path[256];
+    int num_chars = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    assert(num_chars != -1);
+    exe_path[num_chars] = '\0';
 
-void log_set_level(LogLevel level)
-{
-    log_log_level = level;
+    char* base = basename(exe_path);
+    strncpy(buf, base, len - 1);
+    buf[len - 1] = '\0';
 }
 
 void log_log(LogLevel level, char const* format, ...)
 {
-    if (!(level >= log_log_level))
-        return;
-
     FILE* stream = stdout;
+
+    char program_name[256];
+    get_process_name(program_name, 256);
 
     switch (level) {
     case LOG_WARNING:
         stream = stderr;
-        fprintf(stream, "%s: [WARNING] ", log_program_name);
+        fprintf(stream, "%s: [WARNING] ", program_name);
         break;
 
     case LOG_INFO:
-        fprintf(stream, "%s: [INFO] ", log_program_name);
+        fprintf(stream, "%s: [INFO] ", program_name);
         break;
 
     case LOG_ERROR:
         stream = stderr;
-        fprintf(stream, "%s: [ERROR] ", log_program_name);
+        fprintf(stream, "%s: [ERROR] ", program_name);
         break;
-
-    case LOG_NO_LOG:
-        return;
     }
 
     va_list arg_list;

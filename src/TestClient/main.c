@@ -10,18 +10,13 @@
 
 #include <libwr.h>
 
-#include <WRGL/wrgl.h>
 #include <WRGL/buffer.h>
 #include <WRGL/context.h>
 
 #include <GL/gl.h>
 
-int main(int argc, char const** argv)
+int main(void)
 {
-    (void)argc;
-    wr_log_init(argv[0]);
-    wrgl_log_init(argv[0]);
-
     int serverfd = wr_server_connect();
     if (serverfd == -1)
         return 1;

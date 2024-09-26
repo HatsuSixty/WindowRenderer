@@ -125,8 +125,6 @@ void ctrl_c(int signo)
 
 int main(int argc, char const** argv)
 {
-    log_init(argv[0]);
-
     signal(SIGINT, ctrl_c);
 
     if (!application_init(argc, argv))

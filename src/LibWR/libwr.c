@@ -88,11 +88,6 @@ static bool is_response_valid(char const* command, WindowRendererResponseKind ex
     return true;
 }
 
-void wr_log_init(const char *program_name)
-{
-    log_init(program_name);
-}
-
 int wr_server_connect()
 {
     if (!server_session_init()) {
