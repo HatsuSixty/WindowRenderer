@@ -1,5 +1,7 @@
 executable('TestClient', [
   'main.c',
+], include_directories : [
+  shared_inc,
 ], dependencies : [
   dependency('gl'),
   dependency('egl'),

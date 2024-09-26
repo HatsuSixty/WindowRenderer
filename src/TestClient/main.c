@@ -9,11 +9,13 @@
 #include <unistd.h>
 
 #include <libwr.h>
-
 #include <WRGL/buffer.h>
 #include <WRGL/context.h>
 
 #include <GL/gl.h>
+
+#define LOG_IMPLEMENTATION
+#include "log.h"
 
 int main(void)
 {
@@ -47,7 +49,7 @@ int main(void)
     }
 
     const unsigned char* version = glGetString(GL_VERSION);
-    printf("[INFO] Using OpenGL version %s\n", version);
+    log_log(LOG_INFO, "Using OpenGL version %s", version);
 
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);

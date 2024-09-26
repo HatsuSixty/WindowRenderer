@@ -19,6 +19,7 @@ executable('WindowRenderer', [
   'log.c',
 ], include_directories : [
   window_renderer_inc,
+  shared_inc,
 ], dependencies : [
   cc.find_library('pthread'),
   cc.find_library('m'),

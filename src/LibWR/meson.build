@@ -6,6 +6,7 @@ libWR = library('WR', [
   'log.c',
 ], include_directories : [
   libWR_inc,
+  shared_inc,
 ], dependencies : [
   dependency('gl'),
   dependency('egl'),
