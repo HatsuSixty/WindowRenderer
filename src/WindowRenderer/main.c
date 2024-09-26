@@ -40,14 +40,14 @@ static SRMInterface srm_interface = {
 
 static void initialize_gl(SRMConnector* connector, void* user_data)
 {
-    Application* application = user_data;
+    (void)user_data;
 
     SRMConnectorMode* mode = srmConnectorGetCurrentMode(connector);
 
     int width = srmConnectorModeGetWidth(mode);
     int height = srmConnectorModeGetHeight(mode);
 
-    if (!application_init_graphics(application, width, height)) {
+    if (!application_init_graphics(width, height)) {
         should_quit = true;
     }
 
@@ -56,26 +56,26 @@ static void initialize_gl(SRMConnector* connector, void* user_data)
 
 static void paint_gl(SRMConnector* connector, void* user_data)
 {
-    Application* application = user_data;
+    (void)user_data;
 
     SRMDevice* device = srmConnectorGetDevice(connector);
     EGLDisplay* egl_display = srmDeviceGetEGLDisplay(device);
 
-    application_render(application, egl_display);
+    application_render(egl_display);
 
     srmConnectorRepaint(connector);
 }
 
 static void resize_gl(SRMConnector* connector, void* user_data)
 {
-    Application* application = user_data;
+    (void)user_data;
 
     SRMConnectorMode* mode = srmConnectorGetCurrentMode(connector);
 
     int width = srmConnectorModeGetWidth(mode);
     int height = srmConnectorModeGetHeight(mode);
 
-    application_resize(application, width, height);
+    application_resize(width, height);
 
     srmConnectorRepaint(connector);
 }
@@ -89,10 +89,9 @@ static void page_flipped(SRMConnector* connector, void* user_data)
 static void uninitialize_gl(SRMConnector* connector, void* user_data)
 {
     (void)connector;
+    (void)user_data;
 
-    Application* application = user_data;
-
-    application_destroy_graphics(application);
+    application_destroy_graphics();
 }
 
 static SRMConnectorInterface connector_interface = {
@@ -107,9 +106,7 @@ static void connector_plugged_event_handler(SRMListener* listener, SRMConnector*
 {
     (void)listener;
 
-    Application* application = srmListenerGetUserData(listener);
-
-    if (!srmConnectorInitialize(connector, &connector_interface, application))
+    if (!srmConnectorInitialize(connector, &connector_interface, NULL))
         log_log(LOG_ERROR, "Failed to initialize connector %s",
                 srmConnectorGetModel(connector));
 }
@@ -132,23 +129,18 @@ int main(int argc, char const** argv)
 
     signal(SIGINT, ctrl_c);
 
-    Application* application = application_create(argc, argv);
-    if (!application)
+    if (!application_init(argc, argv))
         return 1;
 
     SRMCore* core = srmCoreCreate(&srm_interface, NULL);
-    srmCoreSetUserData(core, application);
-
     if (!core) {
         log_log(LOG_ERROR, "Could not initialize SRM core");
         return 1;
     }
 
-    SRMListener* connector_plugged_listener = srmCoreAddConnectorPluggedEventListener(core,
-                                                                                      &connector_plugged_event_handler,
-                                                                                      NULL);
-    srmListenerSetUserData(connector_plugged_listener, application);
-
+    srmCoreAddConnectorPluggedEventListener(core,
+                                            &connector_plugged_event_handler,
+                                            NULL);
     srmCoreAddConnectorUnpluggedEventListener(core,
                                               &connector_unplugged_event_handler,
                                               NULL);
@@ -162,7 +154,7 @@ int main(int argc, char const** argv)
             SRMConnector* connector = srmListItemGetData(connector_it);
 
             if (srmConnectorIsConnected(connector)) {
-                if (!srmConnectorInitialize(connector, &connector_interface, application))
+                if (!srmConnectorInitialize(connector, &connector_interface, NULL))
                     log_log(LOG_ERROR, "Failed to initialize connector %s",
                             srmConnectorGetModel(connector));
             }
@@ -176,7 +168,7 @@ int main(int argc, char const** argv)
 
     srmCoreDestroy(core);
 
-    application_destroy(application);
+    application_terminate();
 
     return 0;
 }

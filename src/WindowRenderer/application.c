@@ -6,6 +6,7 @@
 #include "renderer/opengl/texture.h"
 #include "renderer/renderer.h"
 #include "session.h"
+#include "server.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,17 +43,19 @@ bool execute_command(int argc, char const** argv, int delay)
     return true;
 }
 
-Application* application_create(int argc, char const** argv)
+struct {
+    Server* server;
+    Renderer* renderer;
+} APP;
+
+bool application_init(int argc, char const** argv)
 {
     char const* command = NULL;
     if (argc > 1)
         command = argv[1];
 
-    Application* application = malloc(sizeof(*application));
-    memset(application, 0, sizeof(*application));
-
     if (!glext_load_extensions()) {
-        return NULL;
+        return false;
     }
 
     log_log(LOG_INFO, "Initializing WindowRenderer");
@@ -61,55 +64,54 @@ Application* application_create(int argc, char const** argv)
 
     log_log(LOG_INFO, "Session hash: %s", session_get_hash());
 
-    application->server = server_create();
-    if (!server_run(application->server))
-        return NULL;
+    APP.server = server_create();
+    if (!server_run(APP.server))
+        return false;
 
-    if (!execute_command(1, (char const*[]) { command }, 5))
-        return NULL;
+    if (!execute_command(1, (char const*[]) { command }, 2))
+        return false;
 
-    return application;
+    return true;
 }
 
-void application_destroy(Application* application)
+void application_terminate()
 {
-    server_destroy(application->server);
-    free(application);
+    server_destroy(APP.server);
 }
 
-bool application_init_graphics(Application* application, int width, int height)
+bool application_init_graphics(int width, int height)
 {
-    application->renderer = renderer_create(width, height);
-    if (!application->renderer)
+    APP.renderer = renderer_create(width, height);
+    if (!APP.renderer)
         return false;
     return true;
 }
 
-void application_destroy_graphics(Application* application)
+void application_destroy_graphics()
 {
-    renderer_destroy(application->renderer);
+    renderer_destroy(APP.renderer);
 }
 
-void application_resize(Application* application, int width, int height)
+void application_resize(int width, int height)
 {
-    renderer_resize(application->renderer, width, height);
+    renderer_resize(APP.renderer, width, height);
 }
 
-void application_render(Application* application, EGLDisplay* egl_display)
+void application_render(EGLDisplay* egl_display)
 {
     (void)egl_display;
 
     gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
     gl(Clear, GL_COLOR_BUFFER_BIT);
 
-    renderer_begin_drawing(application->renderer);
+    renderer_begin_drawing(APP.renderer);
 
-    server_lock_windows(application->server);
+    server_lock_windows(APP.server);
 
-    for (size_t i = 0; i < application->server->windows_count; ++i) {
-        Window* window = application->server->windows[i];
+    for (size_t i = 0; i < APP.server->windows_count; ++i) {
+        Window* window = APP.server->windows[i];
 
-        renderer_draw_rectangle(application->renderer,
+        renderer_draw_rectangle(APP.renderer,
                                 (Vector2) { 0, 0 },
                                 (Vector2) { window->width, window->height },
                                 (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -138,7 +140,7 @@ void application_render(Application* application, EGLDisplay* egl_display)
                                                                 window->dma_buf.width,
                                                                 window->dma_buf.height);
 
-            renderer_draw_texture_ex(application->renderer,
+            renderer_draw_texture_ex(APP.renderer,
                                      texture,
                                      (Vector2) { 0, 0 },
                                      (Vector2) {
@@ -153,5 +155,5 @@ void application_render(Application* application, EGLDisplay* egl_display)
         }
     }
 
-    server_unlock_windows(application->server);
+    server_unlock_windows(APP.server);
 }
