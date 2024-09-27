@@ -11,6 +11,7 @@ executable('WindowRenderer', [
   'renderer/opengl/shader.c',
   'renderer/renderer.c',
   'renderer/glext.c',
+  'input.c',
   'session.c',
   'main.c',
   'application.c',

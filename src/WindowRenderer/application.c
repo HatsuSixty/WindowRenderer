@@ -1,19 +1,21 @@
 #include "application.h"
 
+#include "input.h"
 #include "log.h"
 #include "renderer/glext.h"
 #include "renderer/opengl/gl_errors.h"
 #include "renderer/opengl/texture.h"
 #include "renderer/renderer.h"
-#include "session.h"
 #include "server.h"
+#include "session.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-bool execute_command(int argc, char const** argv, int delay)
+static bool execute_command(int argc, char const** argv, int delay)
 {
     pid_t pid = fork();
     if (pid == -1) {
@@ -46,10 +48,76 @@ bool execute_command(int argc, char const** argv, int delay)
 struct {
     Server* server;
     Renderer* renderer;
+    Vector2 cursor_position;
 } APP;
+
+static void mouse_button(InputMouseButton button, bool released, void* user_data)
+{
+    (void)button;
+    (void)released;
+    (void)user_data;
+}
+
+static void mouse_move(InputMouseAxis axis, int units, void* user_data)
+{
+    // The server may not be available to this function,
+    // as input processig starts before the server gets
+    // created.
+    if (!APP.server)
+        return;
+
+    (void)user_data;
+
+    switch (axis) {
+    case INPUT_MOUSE_AXIS_X:
+        APP.cursor_position.x += units;
+        break;
+
+    case INPUT_MOUSE_AXIS_Y:
+        APP.cursor_position.y += units;
+        break;
+    }
+}
+
+static void mouse_scroll(int detents, void* user_data)
+{
+    (void)detents;
+    (void)user_data;
+}
 
 bool application_init(int argc, char const** argv)
 {
+    memset(&APP, 0, sizeof(APP));
+
+    // Get real UID and GID
+    uid_t real_uid = getuid();
+    gid_t real_gid = getgid();
+
+    // Start listening to mouse events
+    InputMouseInterface mouse_interface = {
+        .button = mouse_button,
+        .move = mouse_move,
+        .scroll = mouse_scroll,
+    };
+    input_mouse_start_processing(mouse_interface, NULL);
+
+    // Set effective UID and GID to the real ones
+    if (seteuid(real_uid) == -1) {
+        log_log(LOG_WARNING, "Could not set the effective UID to the real one: %s\n"
+                             "If the server was started as root, it will keep running as root. "
+                             "Please be cautious!",
+                strerror(errno));
+    }
+
+    if (setegid(real_gid) == -1) {
+        log_log(LOG_WARNING, "Could not set the effective UID to the real one: %s\n"
+                             "If the server was started as root, it will keep running as root. "
+                             "Please be cautious!",
+                strerror(errno));
+    }
+
+    // Proceeed with server initialization
+
     char const* command = NULL;
     if (argc > 1)
         command = argv[1];
@@ -59,9 +127,7 @@ bool application_init(int argc, char const** argv)
     }
 
     log_log(LOG_INFO, "Initializing WindowRenderer");
-
     session_init();
-
     log_log(LOG_INFO, "Session hash: %s", session_get_hash());
 
     APP.server = server_create();
@@ -154,6 +220,10 @@ void application_render(EGLDisplay* egl_display)
             eglDestroyImageKHR(egl_display, egl_image);
         }
     }
+
+    renderer_draw_rectangle(APP.renderer,
+                            APP.cursor_position, (Vector2) { 5, 5 },
+                            (Vector4) { 0.0f, 1.0f, 0.0f, 1.0f });
 
     server_unlock_windows(APP.server);
 }
