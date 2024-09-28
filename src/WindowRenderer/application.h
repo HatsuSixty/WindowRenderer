@@ -1,5 +1,4 @@
-#ifndef APPLICATION_H_
-#define APPLICATION_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -14,5 +13,3 @@ void application_destroy_graphics();
 
 void application_resize(int width, int height);
 void application_render(EGLDisplay* egl_display);
-
-#endif // APPLICATION_H_

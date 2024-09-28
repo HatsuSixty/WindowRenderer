@@ -1,5 +1,4 @@
-#ifndef LOG_H_
-#define LOG_H_
+#pragma once
 
 typedef enum {
     LOG_WARNING,
@@ -62,5 +61,3 @@ void log_log(LogLevel level, char const* format, ...)
 }
 
 #endif // LOG_IMPLEMENTATION
-
-#endif // LOG_H_

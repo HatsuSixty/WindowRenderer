@@ -1,5 +1,4 @@
-#ifndef TYPES_H_
-#define TYPES_H_
+#pragma once
 
 typedef struct {
     float x;
@@ -14,5 +13,3 @@ typedef struct {
     float w;
 } Vector4;
 #define V4X(vec) vec.x, vec.y, vec.z, vec.w
-
-#endif // TYPES_H_

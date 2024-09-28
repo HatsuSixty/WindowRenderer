@@ -1,5 +1,4 @@
-#ifndef GL_ERRORS_H_
-#define GL_ERRORS_H_
+#pragma once
 
 #define gl(name, ...)                        \
     do {                                     \
@@ -17,5 +16,3 @@
 
 void gl_clear_errors();
 void gl_check_errors(const char* file, int line);
-
-#endif // GL_ERRORS_H_

@@ -1,5 +1,4 @@
-#ifndef INDEX_BUFFER_H_
-#define INDEX_BUFFER_H_
+#pragma once
 
 #include <stddef.h>
 
@@ -23,5 +22,3 @@ void index_buffer_resize(IndexBuffer* ib, size_t added_byte_size);
 void index_buffer_push_index(IndexBuffer* ib, unsigned int index);
 
 size_t index_buffer_count(IndexBuffer* ib);
-
-#endif // INDEX_BUFFER_H_

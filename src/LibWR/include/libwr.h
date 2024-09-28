@@ -1,5 +1,4 @@
-#ifndef LIBWR_H_
-#define LIBWR_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -23,5 +22,3 @@ bool wr_close_window(int serverfd, int id);
 
 // Returns false on error
 bool wr_set_window_dma_buf(int serverfd, int window_id, WRDmaBuf dma_buf);
-
-#endif // LIBWR_H_

@@ -1,5 +1,4 @@
-#ifndef WINDOW_H_
-#define WINDOW_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -24,5 +23,3 @@ typedef struct {
 
 Window* window_create(char const* title, int width, int height);
 void window_destroy(Window* window);
-
-#endif // WINDOW_H_

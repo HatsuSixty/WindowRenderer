@@ -1,5 +1,4 @@
-#ifndef SESSION_H_
-#define SESSION_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -9,5 +8,3 @@ char const* session_get_hash();
 
 uint32_t session_generate_window_id();
 char* session_generate_socket_name();
-
-#endif // SESSION_H_

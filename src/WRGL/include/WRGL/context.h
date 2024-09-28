@@ -1,5 +1,4 @@
-#ifndef WRGL_CONTEXT_H_
-#define WRGL_CONTEXT_H_
+#pragma once
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -53,5 +52,3 @@ typedef struct {
 WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
                                             WRGLContextParameters context_parameters);
 void wrgl_context_destroy(WRGLContext* wrgl_context);
-
-#endif // WRGL_CONTEXT_H_

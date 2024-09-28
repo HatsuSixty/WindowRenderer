@@ -1,5 +1,4 @@
-#ifndef SERVER_H_
-#define SERVER_H_
+#pragma once
 
 #include <pthread.h>
 #include <stddef.h>
@@ -31,5 +30,3 @@ void server_unlock_windows(Server* server);
 
 Window** server_get_windows(Server* server);
 size_t server_get_window_count(Server* server);
-
-#endif // SERVER_H_

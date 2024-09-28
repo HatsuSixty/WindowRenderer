@@ -1,5 +1,4 @@
-#ifndef SHADER_H_
-#define SHADER_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -34,5 +33,3 @@ void shader_set_uniform_3f(Shader* shader, const char* name,
                            float x, float y, float z);
 void shader_set_uniform_4f(Shader* shader, const char* name,
                            float x, float y, float z, float w);
-
-#endif // SHADER_H_

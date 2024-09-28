@@ -1,5 +1,4 @@
-#ifndef WINDOWRENDERER_H_
-#define WINDOWRENDERER_H_
+#pragma once
 
 #include "commands/create_window.h"
 #include "commands/close_window.h"
@@ -56,5 +55,3 @@ typedef struct {
         WindowRendererWindowId window_id;
     } response;
 } WindowRendererResponse;
-
-#endif // WINDOWRENDERER_H_

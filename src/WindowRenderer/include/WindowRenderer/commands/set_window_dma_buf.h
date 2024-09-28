@@ -1,5 +1,4 @@
-#ifndef WINDOWRENDERER_SET_WINDOW_DMA_BUF_H_
-#define WINDOWRENDERER_SET_WINDOW_DMA_BUF_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -14,5 +13,3 @@ typedef struct {
     uint32_t window_id;
     WindowRendererDmaBuf dma_buf;
 } WindowRendererSetWindowDmaBuf;
-
-#endif // WINDOWRENDERER_SET_WINDOW_DMA_BUF_H_

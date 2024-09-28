@@ -1,5 +1,4 @@
-#ifndef VERTEX_BUFFER_H_
-#define VERTEX_BUFFER_H_
+#pragma once
 
 #include <stddef.h>
 
@@ -31,5 +30,3 @@ void vertex_buffer_resize(VertexBuffer* vb, size_t added_size);
 void vertex_buffer_push_vertex(VertexBuffer* vb, Vertex vertex);
 
 size_t vertex_buffer_count(VertexBuffer* vb);
-
-#endif // VERTEX_BUFFER_H

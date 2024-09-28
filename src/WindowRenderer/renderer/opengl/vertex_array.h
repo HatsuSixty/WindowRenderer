@@ -1,5 +1,4 @@
-#ifndef VERTEX_ARRAY_H_
-#define VERTEX_ARRAY_H_
+#pragma once
 
 #include <GLES2/gl2.h>
 
@@ -22,5 +21,3 @@ void vertex_array_unbind_all(VertexArray* va);
 
 VertexBuffer* vertex_array_bind_vertex_buffer(VertexArray* va);
 IndexBuffer* vertex_array_bind_index_buffer(VertexArray* va);
-
-#endif // VERTEX_ARRAY_H_

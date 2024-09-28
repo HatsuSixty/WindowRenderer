@@ -1,5 +1,4 @@
-#ifndef WRGL_BUFFER_H_
-#define WRGL_BUFFER_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -19,5 +18,3 @@ typedef struct {
 WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
                                            int width, int height);
 void wrgl_buffer_destroy(WRGLBuffer* wrgl_buffer);
-
-#endif // WRGL_BUFFER_H_

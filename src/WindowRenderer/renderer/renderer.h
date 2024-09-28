@@ -1,5 +1,4 @@
-#ifndef RENDERER_H_
-#define RENDERER_H_
+#pragma once
 
 #include "opengl/index_buffer.h"
 #include "opengl/shader.h"
@@ -38,5 +37,3 @@ void renderer_draw_texture_ex(Renderer* renderer, Texture* texture,
                               Vector2 position, Vector2 size, Vector4 tint);
 void renderer_draw_rectangle(Renderer* renderer,
                              Vector2 position, Vector2 size, Vector4 color);
-
-#endif // RENDERER_H_

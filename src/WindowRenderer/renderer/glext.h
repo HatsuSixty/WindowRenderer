@@ -1,5 +1,4 @@
-#ifndef GLEXT_H_
-#define GLEXT_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -13,5 +12,3 @@ extern PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR;
 extern PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES;
 
 bool glext_load_extensions();
-
-#endif // GLEXT_H_
