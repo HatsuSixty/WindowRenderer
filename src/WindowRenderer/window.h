@@ -15,10 +15,18 @@ typedef struct {
 
 typedef struct {
     int id;
-    int width;
-    int height;
     char const* title;
     WindowDmaBuf dma_buf;
+
+    int x;
+    int y;
+    int width;
+    int height;
+
+    // This is not used by the server or anything.
+    // This is just for the main application to keep
+    // track of what windows are being dragged.
+    bool is_dragging;
 } Window;
 
 Window* window_create(char const* title, int width, int height);

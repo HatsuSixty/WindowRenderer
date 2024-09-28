@@ -30,3 +30,5 @@ void server_unlock_windows(Server* server);
 
 Window** server_get_windows(Server* server);
 size_t server_get_window_count(Server* server);
+
+Window* server_top_window(Server* server);

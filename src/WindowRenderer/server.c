@@ -382,3 +382,8 @@ size_t server_get_window_count(Server* server)
 {
     return server->windows_count;
 }
+
+Window* server_top_window(Server* server)
+{
+    return server->windows[server->windows_count - 1];
+}

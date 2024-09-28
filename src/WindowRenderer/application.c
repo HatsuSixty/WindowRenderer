@@ -16,6 +16,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define TITLE_BAR_THICKNESS 20.f
+
 static bool execute_command(int argc, char const** argv, int delay)
 {
     pid_t pid = fork();
@@ -44,6 +46,14 @@ static bool execute_command(int argc, char const** argv, int delay)
     }
 
     return true;
+}
+
+static bool check_collision_point_rec(Vector2 point, Vector2 rec_position, Vector2 rec_size)
+{
+    return ((point.x >= rec_position.x)
+            && (point.x < (rec_position.x + rec_size.x))
+            && (point.y >= rec_position.y)
+            && (point.y < (rec_position.y + rec_size.y)));
 }
 
 struct {
@@ -125,22 +135,25 @@ void application_resize(int width, int height)
     renderer_resize(APP.renderer, width, height);
 }
 
-void application_render(EGLDisplay* egl_display)
+static void draw_window(EGLDisplay* egl_display, Window* window)
 {
-    (void)egl_display;
-
-    gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
-    gl(Clear, GL_COLOR_BUFFER_BIT);
-
-    renderer_begin_drawing(APP.renderer);
-
-    server_lock_windows(APP.server);
-
-    for (size_t i = 0; i < server_get_window_count(APP.server); ++i) {
-        Window* window = server_get_windows(APP.server)[i];
+    // Draw title bar
+    {
+        Vector2 title_bar_position = { window->x, window->y };
+        Vector2 title_bar_size = { window->width, TITLE_BAR_THICKNESS };
 
         renderer_draw_rectangle(APP.renderer,
-                                (Vector2) { 0, 0 },
+                                title_bar_position,
+                                title_bar_size,
+                                (Vector4) { 1.0f, 1.0f, 0.0f, 1.0f });
+    }
+
+    // Draw window content
+    {
+        Vector2 window_content_position = { window->x, window->y + TITLE_BAR_THICKNESS };
+
+        renderer_draw_rectangle(APP.renderer,
+                                window_content_position,
                                 (Vector2) { window->width, window->height },
                                 (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
 
@@ -161,7 +174,7 @@ void application_render(EGLDisplay* egl_display)
                                                       image_attrs);
             if (egl_image == EGL_NO_IMAGE_KHR) {
                 log_log(LOG_ERROR, "Could not create EGL image from DMA buffer");
-                continue;
+                return;
             }
 
             Texture* texture = texture_create_from_egl_imagekhr(egl_image,
@@ -170,7 +183,7 @@ void application_render(EGLDisplay* egl_display)
 
             renderer_draw_texture_ex(APP.renderer,
                                      texture,
-                                     (Vector2) { 0, 0 },
+                                     window_content_position,
                                      (Vector2) {
                                          window->dma_buf.width,
                                          window->dma_buf.height,
@@ -182,6 +195,23 @@ void application_render(EGLDisplay* egl_display)
             eglDestroyImageKHR(egl_display, egl_image);
         }
     }
+}
+
+void application_render(EGLDisplay* egl_display)
+{
+    (void)egl_display;
+
+    gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
+    gl(Clear, GL_COLOR_BUFFER_BIT);
+
+    renderer_begin_drawing(APP.renderer);
+
+    server_lock_windows(APP.server);
+
+    for (size_t i = 0; i < server_get_window_count(APP.server); ++i) {
+        Window* window = server_get_windows(APP.server)[i];
+        draw_window(egl_display, window);
+    }
 
     renderer_draw_rectangle(APP.renderer,
                             APP.cursor_position, (Vector2) { 5, 5 },
@@ -192,11 +222,38 @@ void application_render(EGLDisplay* egl_display)
 
 void application_update()
 {
-    if (is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
-        log_log(LOG_INFO, "Left mouse button pressed!");
+    Vector2 mouse_delta = get_mouse_delta();
+
+    server_lock_windows(APP.server);
+
+    for (size_t i = 0; i < server_get_window_count(APP.server); ++i) {
+        Window* window = server_get_windows(APP.server)[i];
+        bool window_is_active = window->id == server_top_window(APP.server)->id;
+
+        Vector2 title_bar_position = { window->x, window->y };
+        Vector2 title_bar_size = { window->width, TITLE_BAR_THICKNESS };
+
+        if (check_collision_point_rec(APP.cursor_position,
+                                      title_bar_position,
+                                      title_bar_size)
+            && is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
+            window->is_dragging = true;
+        }
+
+        if (window->is_dragging) {
+            if (window_is_active) {
+                window->x += mouse_delta.x;
+                window->y += mouse_delta.y;
+            }
+
+            if (is_mouse_button_just_released(INPUT_MOUSE_BUTTON_LEFT)) {
+                window->is_dragging = false;
+            }
+        }
     }
 
-    Vector2 mouse_delta = get_mouse_delta();
+    server_unlock_windows(APP.server);
+
     APP.cursor_position = (Vector2) {
         .x = APP.cursor_position.x + mouse_delta.x,
         .y = APP.cursor_position.y + mouse_delta.y,

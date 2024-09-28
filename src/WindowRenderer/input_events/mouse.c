@@ -55,7 +55,7 @@ static void* process_mouse_events(ProcessMouseEventsInfo* info)
             }
 
             if (mouse_interface.button)
-                mouse_interface.button(mouse_button, event.value == 1, user_data);
+                mouse_interface.button(mouse_button, event.value == 0, user_data);
 
         } else if (event.type == EV_REL && (event.code == REL_X || event.code == REL_Y)) {
             InputMouseAxis mouse_axis;
