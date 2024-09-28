@@ -11,6 +11,7 @@ typedef enum {
     INPUT_MOUSE_BUTTON_LEFT,
     INPUT_MOUSE_BUTTON_RIGHT,
     INPUT_MOUSE_BUTTON_MIDDLE,
+    COUNT_INPUT_MOUSE_BUTTON,
 } InputMouseButton;
 
 typedef struct {

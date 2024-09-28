@@ -1,5 +1,6 @@
 #include "application.h"
 
+#include "input.h"
 #include "input_events/mouse.h"
 #include "log.h"
 #include "renderer/glext.h"
@@ -51,40 +52,6 @@ struct {
     Vector2 cursor_position;
 } APP;
 
-static void mouse_button(InputMouseButton button, bool released, void* user_data)
-{
-    (void)button;
-    (void)released;
-    (void)user_data;
-}
-
-static void mouse_move(InputMouseAxis axis, int units, void* user_data)
-{
-    // The server may not be available to this function,
-    // as input processig starts before the server gets
-    // created.
-    if (!APP.server)
-        return;
-
-    (void)user_data;
-
-    switch (axis) {
-    case INPUT_MOUSE_AXIS_X:
-        APP.cursor_position.x += units;
-        break;
-
-    case INPUT_MOUSE_AXIS_Y:
-        APP.cursor_position.y += units;
-        break;
-    }
-}
-
-static void mouse_scroll(int detents, void* user_data)
-{
-    (void)detents;
-    (void)user_data;
-}
-
 bool application_init(int argc, char const** argv)
 {
     memset(&APP, 0, sizeof(APP));
@@ -93,13 +60,8 @@ bool application_init(int argc, char const** argv)
     uid_t real_uid = getuid();
     gid_t real_gid = getgid();
 
-    // Start listening to mouse events
-    InputMouseInterface mouse_interface = {
-        .button = mouse_button,
-        .move = mouse_move,
-        .scroll = mouse_scroll,
-    };
-    input_mouse_start_processing(mouse_interface, NULL);
+    // Setup listening for mouse/keyboard events
+    input_start_processing();
 
     // Set effective UID and GID to the real ones
     if (seteuid(real_uid) == -1) {
@@ -226,4 +188,18 @@ void application_render(EGLDisplay* egl_display)
                             (Vector4) { 0.0f, 1.0f, 0.0f, 1.0f });
 
     server_unlock_windows(APP.server);
+}
+
+void application_update()
+{
+    if (is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
+        log_log(LOG_INFO, "Left mouse button pressed!");
+    }
+
+    Vector2 mouse_delta = get_mouse_delta();
+    APP.cursor_position = (Vector2) {
+        .x = APP.cursor_position.x + mouse_delta.x,
+        .y = APP.cursor_position.y + mouse_delta.y,
+    };
+    input_update();
 }

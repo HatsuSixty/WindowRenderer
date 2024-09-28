@@ -12,6 +12,7 @@ executable('WindowRenderer', [
   'renderer/renderer.c',
   'renderer/glext.c',
   'input_events/mouse.c',
+  'input.c',
   'session.c',
   'main.c',
   'application.c',

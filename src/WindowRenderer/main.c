@@ -160,8 +160,9 @@ int main(int argc, char const** argv)
     }
 
     while (!should_quit) {
-        if (srmCoreProcessMonitor(core, -1) < 0)
+        if (srmCoreProcessMonitor(core, 0) == -1)
             break;
+        application_update();
     }
 
     srmCoreDestroy(core);

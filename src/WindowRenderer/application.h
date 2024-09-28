@@ -13,3 +13,5 @@ void application_destroy_graphics();
 
 void application_resize(int width, int height);
 void application_render(EGLDisplay* egl_display);
+
+void application_update();
