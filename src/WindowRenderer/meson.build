@@ -11,7 +11,7 @@ executable('WindowRenderer', [
   'renderer/opengl/shader.c',
   'renderer/renderer.c',
   'renderer/glext.c',
-  'input.c',
+  'input_events/mouse.c',
   'session.c',
   'main.c',
   'application.c',

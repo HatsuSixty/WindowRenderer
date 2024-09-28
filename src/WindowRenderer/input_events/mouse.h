@@ -1,5 +1,5 @@
-#ifndef INPUT_H_
-#define INPUT_H_
+#ifndef MOUSE_H_
+#define MOUSE_H_
 
 #include <stdbool.h>
 
@@ -22,4 +22,4 @@ typedef struct {
 
 void input_mouse_start_processing(InputMouseInterface interface, void* user_data);
 
-#endif // INPUT_H_
+#endif // MOUSE_H_

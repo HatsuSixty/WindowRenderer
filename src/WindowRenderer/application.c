@@ -1,6 +1,6 @@
 #include "application.h"
 
-#include "input.h"
+#include "input_events/mouse.h"
 #include "log.h"
 #include "renderer/glext.h"
 #include "renderer/opengl/gl_errors.h"

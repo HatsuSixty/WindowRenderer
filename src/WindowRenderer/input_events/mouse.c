@@ -1,4 +1,4 @@
-#include "input.h"
+#include "mouse.h"
 
 #include <dirent.h>
 #include <errno.h>
