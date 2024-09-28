@@ -372,3 +372,13 @@ void server_unlock_windows(Server* server)
 {
     pthread_mutex_unlock(&server->windows_mutex);
 }
+
+Window** server_get_windows(Server* server)
+{
+    return server->windows;
+}
+
+size_t server_get_window_count(Server* server)
+{
+    return server->windows_count;
+}

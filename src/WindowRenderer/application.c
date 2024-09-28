@@ -174,8 +174,8 @@ void application_render(EGLDisplay* egl_display)
 
     server_lock_windows(APP.server);
 
-    for (size_t i = 0; i < APP.server->windows_count; ++i) {
-        Window* window = APP.server->windows[i];
+    for (size_t i = 0; i < server_get_window_count(APP.server); ++i) {
+        Window* window = server_get_windows(APP.server)[i];
 
         renderer_draw_rectangle(APP.renderer,
                                 (Vector2) { 0, 0 },

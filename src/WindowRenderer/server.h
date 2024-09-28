@@ -29,4 +29,7 @@ bool server_run(Server* server);
 void server_lock_windows(Server* server);
 void server_unlock_windows(Server* server);
 
+Window** server_get_windows(Server* server);
+size_t server_get_window_count(Server* server);
+
 #endif // SERVER_H_
