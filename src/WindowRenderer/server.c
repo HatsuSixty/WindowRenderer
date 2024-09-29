@@ -69,7 +69,7 @@ static void server_remove_window(Server* server, int window_index)
     if ((size_t)window_index < server->windows_count - 1) {
         memmove(&server->windows[window_index],
                 &server->windows[window_index + 1],
-                sizeof(void*));
+                (server->windows_count - window_index - 1) * sizeof(void*));
     }
     server->windows_count -= 1;
 }
@@ -283,6 +283,7 @@ static void* server_handle_client(HandleClientInfo* info)
     }
 
 exit:
+    close(cfd);
     free(info);
     log_log(LOG_INFO, "Exiting `handle_client` thread...");
     return NULL;
@@ -319,8 +320,10 @@ static void* server_listener(Server* server)
                              (void* (*)(void*)) & server_handle_client, info);
         if (status != 0) {
             log_log(LOG_ERROR, "Could not create handle_client thread");
+            free(info);
             continue;
         }
+        pthread_detach(handle_client_thread);
     }
 
 exit:
@@ -369,6 +372,7 @@ bool server_run(Server* server)
         close(server->socket);
         return false;
     }
+    pthread_detach(server->listener_thread);
 
     return true;
 }
