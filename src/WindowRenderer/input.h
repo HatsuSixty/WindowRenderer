@@ -13,4 +13,3 @@ bool is_mouse_button_just_released(InputMouseButton button);
 bool is_mouse_button_pressed(InputMouseButton button);
 
 Vector2 get_mouse_delta();
-Vector2 get_mouse_position();

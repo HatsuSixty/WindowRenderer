@@ -77,25 +77,6 @@ static void* process_mouse_events(ProcessMouseEventsInfo* info)
             if (mouse_interface.move)
                 mouse_interface.move(mouse_axis, event.value, user_data);
 
-        } else if (event.type == EV_ABS && (event.code == ABS_X || event.code == ABS_Y)) {
-            InputMouseAxis mouse_axis;
-
-            switch (event.code) {
-            case ABS_X:
-                mouse_axis = INPUT_MOUSE_AXIS_X;
-                break;
-
-            case ABS_Y:
-                mouse_axis = INPUT_MOUSE_AXIS_Y;
-                break;
-
-            default:
-                continue;
-            }
-
-            if (mouse_interface.move_abs)
-                mouse_interface.move_abs(mouse_axis, event.value, user_data);
-
         } else if (event.type == EV_REL && event.code == REL_WHEEL) {
             if (mouse_interface.scroll)
                 mouse_interface.scroll(event.value, user_data);
