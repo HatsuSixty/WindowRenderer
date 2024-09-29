@@ -1,5 +1,6 @@
 #include "mouse.h"
 
+#include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -116,8 +117,10 @@ void input_mouse_start_processing(InputMouseInterface interface, void* user_data
                 close(device_fd);
                 continue;
             }
+            for (size_t i = 0; i < 256; ++i)
+                device_name[i] = tolower(device_name[i]);
 
-            bool is_mouse_device = strstr(device_name, "Mouse") != NULL;
+            bool is_mouse_device = strstr(device_name, "mouse") != NULL;
 
             if (is_mouse_device) {
                 ProcessMouseEventsInfo* info = malloc(sizeof(*info));
