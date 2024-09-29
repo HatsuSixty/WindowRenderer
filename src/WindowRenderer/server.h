@@ -32,3 +32,11 @@ Window** server_get_windows(Server* server);
 size_t server_get_window_count(Server* server);
 
 Window* server_top_window(Server* server);
+
+/*
+ * WARNING: this function DOES NOT lock window access. You'll have to lock
+ *          it yourself.
+ *
+ * Returns false on error.
+ */
+bool server_raise_window(Server* server, Window* window);

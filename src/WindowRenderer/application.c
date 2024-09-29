@@ -16,7 +16,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#define TITLE_BAR_THICKNESS 20.f
+#define WINDOW_TITLE_BAR_THICKNESS 20.f
+#define WINDOW_BORDER_THICKNESS 2.f
 
 static bool execute_command(int argc, char const** argv, int delay)
 {
@@ -140,7 +141,7 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
     // Draw title bar
     {
         Vector2 title_bar_position = { window->x, window->y };
-        Vector2 title_bar_size = { window->width, TITLE_BAR_THICKNESS };
+        Vector2 title_bar_size = { window->width, WINDOW_TITLE_BAR_THICKNESS };
 
         renderer_draw_rectangle(APP.renderer,
                                 title_bar_position,
@@ -148,10 +149,29 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
                                 (Vector4) { 1.0f, 1.0f, 0.0f, 1.0f });
     }
 
+    Vector2 window_content_position = { window->x, window->y + WINDOW_TITLE_BAR_THICKNESS };
+    Vector2 window_content_size = { window->width, window->height };
+
+    // Draw window border
+    {
+        Vector2 window_border_position = {
+            .x = window_content_position.x - WINDOW_BORDER_THICKNESS,
+            .y = window_content_position.y - WINDOW_BORDER_THICKNESS,
+        };
+
+        Vector2 window_border_size = {
+            .x = window_content_size.x + WINDOW_BORDER_THICKNESS * 2.f,
+            .y = window_content_size.y + WINDOW_BORDER_THICKNESS * 2.f,
+        };
+
+        renderer_draw_rectangle(APP.renderer,
+                                window_border_position,
+                                window_border_size,
+                                (Vector4) { 0.0f, 0.0f, 1.0f, 1.0f });
+    }
+
     // Draw window content
     {
-        Vector2 window_content_position = { window->x, window->y + TITLE_BAR_THICKNESS };
-
         renderer_draw_rectangle(APP.renderer,
                                 window_content_position,
                                 (Vector2) { window->width, window->height },
@@ -184,10 +204,7 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
             renderer_draw_texture_ex(APP.renderer,
                                      texture,
                                      window_content_position,
-                                     (Vector2) {
-                                         window->dma_buf.width,
-                                         window->dma_buf.height,
-                                     },
+                                     window_content_size,
                                      (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
 
             texture_destroy(texture);
@@ -224,34 +241,66 @@ void application_update()
 {
     Vector2 mouse_delta = get_mouse_delta();
 
+    /*
+     * Start updating windows: lock window access
+     */
     server_lock_windows(APP.server);
 
-    for (size_t i = 0; i < server_get_window_count(APP.server); ++i) {
-        Window* window = server_get_windows(APP.server)[i];
-        bool window_is_active = window->id == server_top_window(APP.server)->id;
+    // Handle window dragging
+    {
+        for (size_t i = 0; i < server_get_window_count(APP.server); ++i) {
+            Window* window = server_get_windows(APP.server)[i];
+            bool window_is_active = window->id == server_top_window(APP.server)->id;
 
-        Vector2 title_bar_position = { window->x, window->y };
-        Vector2 title_bar_size = { window->width, TITLE_BAR_THICKNESS };
+            Vector2 title_bar_position = { window->x, window->y };
+            Vector2 title_bar_size = { window->width, WINDOW_TITLE_BAR_THICKNESS };
 
-        if (check_collision_point_rec(APP.cursor_position,
-                                      title_bar_position,
-                                      title_bar_size)
-            && is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
-            window->is_dragging = true;
-        }
-
-        if (window->is_dragging) {
-            if (window_is_active) {
-                window->x += mouse_delta.x;
-                window->y += mouse_delta.y;
+            if (check_collision_point_rec(APP.cursor_position,
+                                          title_bar_position,
+                                          title_bar_size)
+                && is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
+                window->is_dragging = true;
             }
 
-            if (is_mouse_button_just_released(INPUT_MOUSE_BUTTON_LEFT)) {
-                window->is_dragging = false;
+            if (window->is_dragging) {
+                if (window_is_active) {
+                    window->x += mouse_delta.x;
+                    window->y += mouse_delta.y;
+                }
+
+                if (is_mouse_button_just_released(INPUT_MOUSE_BUTTON_LEFT)) {
+                    window->is_dragging = false;
+                }
             }
         }
     }
 
+    // Handle window focus
+    {
+        if (is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)
+            && server_get_window_count(APP.server) != 0) {
+            for (size_t i = server_get_window_count(APP.server) - 1; i >= 0; --i) {
+                Window* window = server_get_windows(APP.server)[i];
+
+                Vector2 window_area_position = { window->x, window->y };
+                Vector2 window_area_size
+                    = { window->width, window->height + WINDOW_TITLE_BAR_THICKNESS };
+
+                if (check_collision_point_rec(APP.cursor_position,
+                                              window_area_position,
+                                              window_area_size)) {
+                    if (window->id != server_top_window(APP.server)->id) {
+                        server_raise_window(APP.server, window);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    /*
+     * Finish updating windows: unlock window access
+     */
     server_unlock_windows(APP.server);
 
     APP.cursor_position = (Vector2) {

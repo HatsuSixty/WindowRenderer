@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct {
     bool present;
@@ -14,7 +15,7 @@ typedef struct {
 } WindowDmaBuf;
 
 typedef struct {
-    int id;
+    uint32_t id;
     char const* title;
     WindowDmaBuf dma_buf;
 

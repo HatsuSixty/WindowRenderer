@@ -50,6 +50,30 @@ void server_destroy(Server* server)
     free(server);
 }
 
+static int server_find_window(Server* server, uint32_t id)
+{
+    for (size_t i = 0; i < server->windows_count; ++i) {
+        if (server->windows[i]->id == id) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/*
+ * WARNING: this function takes an index in the server->windows array
+ *          instead of a window id!
+ */
+static void server_remove_window(Server* server, int window_index)
+{
+    if ((size_t)window_index < server->windows_count - 1) {
+        memmove(&server->windows[window_index],
+                &server->windows[window_index + 1],
+                sizeof(void*));
+    }
+    server->windows_count -= 1;
+}
+
 static WindowRendererResponse server_create_window(Server* server,
                                                    char const* title, int width, int height)
 {
@@ -71,7 +95,7 @@ static WindowRendererResponse server_create_window(Server* server,
     return response;
 }
 
-static WindowRendererResponse server_close_window(Server* server, int window_id)
+static WindowRendererResponse server_close_window(Server* server, uint32_t window_id)
 {
     server_lock_windows(server);
 
@@ -80,29 +104,21 @@ static WindowRendererResponse server_close_window(Server* server, int window_id)
         .status = WRSTATUS_OK,
     };
 
-    bool id_valid = false;
-
-    for (size_t i = 0; i < server->windows_count; i++) {
-        if (server->windows[i]->id == window_id) {
-            id_valid = true;
-
-            if (i < server->windows_count - 1) {
-                memmove(&server->windows[i], &server->windows[i + 1], sizeof(void*));
-            }
-            server->windows_count -= 1;
-
-            break;
-        }
+    int index = server_find_window(server, window_id);
+    if (index == -1) {
+        response.status = WRSTATUS_INVALID_WINID;
+        goto defer;
     }
 
-    if (!id_valid)
-        response.status = WRSTATUS_INVALID_WINID;
+    window_destroy(server->windows[index]);
+    server_remove_window(server, index);
 
+defer:
     server_unlock_windows(server);
     return response;
 }
 
-static WindowRendererResponse server_set_window_dma_buf(Server* server, int window_id,
+static WindowRendererResponse server_set_window_dma_buf(Server* server, uint32_t window_id,
                                                         WindowRendererDmaBuf dma_buf, int dma_buf_fd)
 {
     server_lock_windows(server);
@@ -112,39 +128,33 @@ static WindowRendererResponse server_set_window_dma_buf(Server* server, int wind
         .status = WRSTATUS_OK,
     };
 
-    bool id_valid = false;
-
-    for (size_t i = 0; i < server->windows_count; i++) {
-        if (server->windows[i]->id == window_id) {
-            id_valid = true;
-
-            if (dma_buf_fd == -1) {
-                response.status = WRSTATUS_INVALID_DMA_BUF_FD;
-                break;
-            }
-
-            if (dma_buf.width != server->windows[i]->width
-                || dma_buf.height != server->windows[i]->height) {
-                response.status = WRSTATUS_INVALID_DMA_BUF_SIZE;
-                break;
-            }
-
-            server->windows[i]->dma_buf = (WindowDmaBuf) {
-                .present = true,
-                .fd = dma_buf_fd,
-                .width = dma_buf.width,
-                .height = dma_buf.height,
-                .format = dma_buf.format,
-                .stride = dma_buf.stride,
-            };
-
-            break;
-        }
+    int index = server_find_window(server, window_id);
+    if (index == -1) {
+        response.status = WRSTATUS_INVALID_WINID;
+        goto defer;
     }
 
-    if (!id_valid)
-        response.status = WRSTATUS_INVALID_WINID;
+    if (dma_buf_fd == -1) {
+        response.status = WRSTATUS_INVALID_DMA_BUF_FD;
+        goto defer;
+    }
 
+    if (dma_buf.width != server->windows[index]->width
+        || dma_buf.height != server->windows[index]->height) {
+        response.status = WRSTATUS_INVALID_DMA_BUF_SIZE;
+        goto defer;
+    }
+
+    server->windows[index]->dma_buf = (WindowDmaBuf) {
+        .present = true,
+        .fd = dma_buf_fd,
+        .width = dma_buf.width,
+        .height = dma_buf.height,
+        .format = dma_buf.format,
+        .stride = dma_buf.stride,
+    };
+
+defer:
     server_unlock_windows(server);
     return response;
 }
@@ -386,4 +396,24 @@ size_t server_get_window_count(Server* server)
 Window* server_top_window(Server* server)
 {
     return server->windows[server->windows_count - 1];
+}
+
+/*
+ * WARNING: this function DOES NOT lock window access. You'll have to lock
+ * it yourself.
+ *
+ * Returns false on error.
+ */
+bool server_raise_window(Server* server, Window* window)
+{
+    int index = server_find_window(server, window->id);
+    if (index == -1) {
+        log_log(LOG_ERROR, "Failed to raise window of id `%d`", window->id);
+        return false;
+    }
+
+    server_remove_window(server, index);
+    server->windows[server->windows_count++] = window;
+
+    return true;
 }
