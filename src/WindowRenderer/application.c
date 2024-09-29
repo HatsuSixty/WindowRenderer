@@ -321,10 +321,7 @@ void application_update()
      */
     server_unlock_windows(APP.server);
 
-    APP.cursor_position = vector2_clamp((Vector2) {
-                                            .x = APP.cursor_position.x + mouse_delta.x,
-                                            .y = APP.cursor_position.y + mouse_delta.y,
-                                        },
+    APP.cursor_position = vector2_clamp(get_mouse_position(),
                                         (Vector2) { 0, 0 }, APP.minimum_screen_size);
     input_update();
 }

@@ -33,6 +33,21 @@ static void mouse_move(InputMouseAxis axis, int units, void* user_data)
     }
 }
 
+static void mouse_move_abs(InputMouseAxis axis, int coord, void* user_data)
+{
+    (void)user_data;
+
+    switch (axis) {
+    case INPUT_MOUSE_AXIS_X:
+        INPUT.cursor_position.x = coord;
+        break;
+
+    case INPUT_MOUSE_AXIS_Y:
+        INPUT.cursor_position.y = coord;
+        break;
+    }
+}
+
 static void mouse_scroll(int detents, void* user_data)
 {
     (void)detents;
@@ -46,6 +61,7 @@ void input_start_processing()
     InputMouseInterface mouse_interface = {
         .button = mouse_button,
         .move = mouse_move,
+        .move_abs = mouse_move_abs,
         .scroll = mouse_scroll,
     };
     input_mouse_start_processing(mouse_interface, NULL);
@@ -78,4 +94,9 @@ Vector2 get_mouse_delta()
         .x = INPUT.cursor_position.x - INPUT.prev_cursor_position.x,
         .y = INPUT.cursor_position.y - INPUT.prev_cursor_position.y,
     };
+}
+
+Vector2 get_mouse_position()
+{
+    return INPUT.cursor_position;
 }

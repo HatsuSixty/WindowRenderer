@@ -17,6 +17,7 @@ typedef enum {
 typedef struct {
     void (*button)(InputMouseButton button, bool released, void* user_data);
     void (*move)(InputMouseAxis axis, int units, void* user_data);
+    void (*move_abs)(InputMouseAxis axis, int coord, void* user_data);
     void (*scroll)(int detents, void* user_data);
 } InputMouseInterface;
 
