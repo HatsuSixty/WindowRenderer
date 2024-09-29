@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -17,14 +17,28 @@
 #define LOG_IMPLEMENTATION
 #include "log.h"
 
-int main(void)
+int main(int argc, char const** argv)
 {
+    int width;
+    int height;
+
+    if (argc < 3) {
+        width = 400;
+        height = 400;
+    } else {
+        width = atoi(argv[1]);
+        height = atoi(argv[2]);
+    }
+
+    if (width == 0 || height == 0) {
+        log_log(LOG_ERROR, "Invalid window width or height");
+        return 1;
+    }
+
     int serverfd = wr_server_connect();
     if (serverfd == -1)
         return 1;
 
-    int width = 400;
-    int height = 400;
     int window_id = wr_create_window(serverfd, "Hello, World", width, height);
     if (window_id == -1) {
         wr_server_disconnect(serverfd);

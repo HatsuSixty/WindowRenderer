@@ -2,3 +2,4 @@
 .cache/
 subprojects/srm/
 start.sh
+client.sh
