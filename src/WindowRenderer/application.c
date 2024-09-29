@@ -297,7 +297,7 @@ void application_update()
     {
         if (is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)
             && server_get_window_count(APP.server) != 0) {
-            for (size_t i = server_get_window_count(APP.server) - 1; i >= 0; --i) {
+            for (size_t i = server_get_window_count(APP.server) - 1; i-- > 0;) {
                 Window* window = server_get_windows(APP.server)[i];
 
                 Vector2 window_area_position = { window->x, window->y };

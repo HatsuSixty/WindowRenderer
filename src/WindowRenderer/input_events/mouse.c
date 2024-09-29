@@ -125,7 +125,10 @@ void input_mouse_start_processing(InputMouseInterface interface, void* user_data
     while ((entry = readdir(directory)) != NULL) {
         if (strncmp(entry->d_name, "event", 5) == 0) {
             char device_path[256];
-            snprintf(device_path, sizeof(device_path), "%s%s", directory_path, entry->d_name);
+            size_t device_path_written_length
+                = snprintf(device_path, sizeof(device_path), "%s%s", directory_path, entry->d_name);
+            if (device_path_written_length > sizeof(device_path))
+                continue;
 
             int device_fd = open(device_path, O_RDONLY);
             if (device_fd == -1)
