@@ -1,4 +1,4 @@
  TODO
 =========================
 
-No TODOs :3
+* [server] Try to separate window manager from main file
