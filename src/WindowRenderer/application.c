@@ -11,6 +11,7 @@
 #include "session.h"
 
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,10 +58,20 @@ static bool check_collision_point_rec(Vector2 point, Vector2 rec_position, Vecto
             && (point.y < (rec_position.y + rec_size.y)));
 }
 
+static inline Vector2 vector2_clamp(Vector2 v, Vector2 min, Vector2 max)
+{
+    return (Vector2) {
+        .x = fminf(max.x, fmaxf(min.x, v.x)),
+        .y = fminf(max.y, fmaxf(min.y, v.y)),
+    };
+}
+
 struct {
     Server* server;
     Renderer* renderer;
+
     Vector2 cursor_position;
+    Vector2 minimum_screen_size;
 } APP;
 
 bool application_init(int argc, char const** argv)
@@ -120,6 +131,8 @@ void application_terminate()
 
 bool application_init_graphics(int width, int height)
 {
+    APP.minimum_screen_size = (Vector2) { width, height };
+
     APP.renderer = renderer_create(width, height);
     if (!APP.renderer)
         return false;
@@ -133,6 +146,11 @@ void application_destroy_graphics()
 
 void application_resize(int width, int height)
 {
+    if (width < APP.minimum_screen_size.x)
+        APP.minimum_screen_size.x = width;
+    if (width < APP.minimum_screen_size.y)
+        APP.minimum_screen_size.y = height;
+
     renderer_resize(APP.renderer, width, height);
 }
 
@@ -303,9 +321,10 @@ void application_update()
      */
     server_unlock_windows(APP.server);
 
-    APP.cursor_position = (Vector2) {
-        .x = APP.cursor_position.x + mouse_delta.x,
-        .y = APP.cursor_position.y + mouse_delta.y,
-    };
+    APP.cursor_position = vector2_clamp((Vector2) {
+                                            .x = APP.cursor_position.x + mouse_delta.x,
+                                            .y = APP.cursor_position.y + mouse_delta.y,
+                                        },
+                                        (Vector2) { 0, 0 }, APP.minimum_screen_size);
     input_update();
 }
