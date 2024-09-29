@@ -1,3 +1,4 @@
+#include "WRGL/wrgl.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -45,8 +46,12 @@ int main(int argc, char const** argv)
         return 1;
     }
 
-    WRGLBuffer* wrgl_buffer = wrgl_buffer_create_from_window(serverfd, window_id,
-                                                             width, height);
+    char gpu_device_path[256];
+    wrgl_find_gpu_device(gpu_device_path, 256);
+    log_log(LOG_INFO, "Using GPU device `%s`", gpu_device_path);
+
+    WRGLBuffer* wrgl_buffer = wrgl_buffer_create_from_window(serverfd, gpu_device_path,
+                                                             window_id, width, height);
     if (!wrgl_buffer) {
         wr_close_window(serverfd, window_id);
         wr_server_disconnect(serverfd);

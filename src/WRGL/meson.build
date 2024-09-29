@@ -3,6 +3,7 @@ WRGL_inc = include_directories('include')
 WRGL = library('WRGL', [
   'wrgl_buffer.c',
   'wrgl_context.c',
+  'wrgl.c',
   'glext.c',
 ], include_directories : [
   WRGL_inc,

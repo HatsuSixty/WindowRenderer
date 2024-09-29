@@ -15,6 +15,6 @@ typedef struct {
     WRDmaBuf dma_buf;
 } WRGLBuffer;
 
-WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
-                                           int width, int height);
+WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, char const* gpu_device,
+                                           uint32_t window_id, int width, int height);
 void wrgl_buffer_destroy(WRGLBuffer* wrgl_buffer);

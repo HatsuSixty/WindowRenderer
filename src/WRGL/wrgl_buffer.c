@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #include <EGL/egl.h>
 #include <gbm.h>
@@ -16,8 +17,8 @@
 
 #include <libwr.h>
 
-WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
-                                           int width, int height)
+WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, char const* gpu_device,
+                                           uint32_t window_id, int width, int height)
 {
     WRGLBuffer* wrgl_buffer = malloc(sizeof(*wrgl_buffer));
     memset(wrgl_buffer, 0, sizeof(*wrgl_buffer));
@@ -30,7 +31,7 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, uint32_t window_id,
     }
 
     // Open graphics card device
-    wrgl_buffer->gpu_fd = open("/dev/dri/card1", O_RDWR | O_CLOEXEC);
+    wrgl_buffer->gpu_fd = open(gpu_device, O_RDWR | O_CLOEXEC);
     if (wrgl_buffer->gpu_fd == -1) {
         log_log(LOG_ERROR, "Could not open graphics card device: %s",
                 strerror(errno));
