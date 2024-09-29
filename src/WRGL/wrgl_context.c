@@ -49,6 +49,8 @@ static EGLint wrgl_context_profile(WRGLContextProfile profile)
     case WRGL_PROFILE_COMPATIBILITY:
         return EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT;
     }
+
+    return -1;
 }
 
 static EGLint wrgl_api_conformance(WRGLContextApiConformance api)
@@ -69,6 +71,8 @@ static EGLint wrgl_api_conformance(WRGLContextApiConformance api)
     case WRGL_API_DONT_CARE:
         return 0;
     }
+
+    return -1;
 }
 
 WRGLContextParameters wrgl_get_default_context_parameters()
@@ -120,8 +124,15 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     }
 
     // Choose framebuffer configuration
+    EGLint api_conformance = wrgl_api_conformance(context_parameters.api_conformance);
+    if (api_conformance == -1) {
+        log_log(LOG_ERROR, "Invalid API conformance");
+        failed = true;
+        goto defer;
+    }
+
     EGLint frame_buffer_attributes[] = {
-        EGL_CONFORMANT, wrgl_api_conformance(context_parameters.api_conformance),
+        EGL_CONFORMANT, api_conformance,
         EGL_RED_SIZE, context_parameters.red_bit_size,
         EGL_GREEN_SIZE, context_parameters.green_bit_size,
         EGL_BLUE_SIZE, context_parameters.blue_bit_size,
@@ -148,10 +159,17 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     EGLBoolean context_forward_compatible
         = context_parameters.forward_compatible ? EGL_TRUE : EGL_FALSE;
 
+    EGLint context_profile = wrgl_context_profile(context_parameters.profile);
+    if (context_profile == -1) {
+        log_log(LOG_ERROR, "Invalid context profile");
+        failed = true;
+        goto defer;
+    }
+
     EGLint context_attributes[] = {
         EGL_CONTEXT_MAJOR_VERSION, context_major_version,
         EGL_CONTEXT_MINOR_VERSION, context_minor_version,
-        EGL_CONTEXT_OPENGL_PROFILE_MASK, wrgl_context_profile(context_parameters.profile),
+        EGL_CONTEXT_OPENGL_PROFILE_MASK, context_profile,
         EGL_CONTEXT_OPENGL_DEBUG, context_parameters.debug ? EGL_TRUE : EGL_FALSE,
         EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE, context_forward_compatible,
         EGL_CONTEXT_OPENGL_ROBUST_ACCESS, context_parameters.robust_access ? EGL_TRUE : EGL_FALSE,

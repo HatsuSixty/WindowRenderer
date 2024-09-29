@@ -37,7 +37,7 @@ void session_init()
 {
     srand(time(NULL));
 
-    const int rand_string_length = 256;
+    const size_t rand_string_length = 256;
     char* rand_string = alloca(rand_string_length + 1);
     rand_string[rand_string_length] = '\0';
     {
