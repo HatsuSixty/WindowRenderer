@@ -22,7 +22,7 @@ bool wrgl_find_gpu_device(char* gpu_device_path, size_t gpu_device_path_len)
     struct dirent* directory_entry;
 
     while ((directory_entry = readdir(directory)) != NULL) {
-        if (strncmp(directory_entry->d_name, "renderD", 7) == 0) {
+        if (strncmp(directory_entry->d_name, "card", 4) == 0) {
             snprintf(gpu_device_path, gpu_device_path_len,
                      "%s%s", dev_dri, directory_entry->d_name);
             return true;
@@ -30,7 +30,7 @@ bool wrgl_find_gpu_device(char* gpu_device_path, size_t gpu_device_path_len)
     }
 
     while ((directory_entry = readdir(directory)) != NULL) {
-        if (strncmp(directory_entry->d_name, "card", 4) == 0) {
+        if (strncmp(directory_entry->d_name, "renderD", 7) == 0) {
             snprintf(gpu_device_path, gpu_device_path_len,
                      "%s%s", dev_dri, directory_entry->d_name);
             return true;
