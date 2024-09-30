@@ -1,4 +1,4 @@
  TODO
 =========================
 
-* [server] Try to separate window manager from main file
+No TODOs :3
