@@ -14,6 +14,9 @@ typedef struct {
     Vector2 title_bar_position;
     Vector2 title_bar_size;
 
+    Vector2 close_button_position;
+    Vector2 close_button_size;
+
     Vector2 content_position;
 
     Vector2 total_area_position;

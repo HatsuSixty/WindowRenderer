@@ -161,6 +161,12 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
                             window_parameters.title_bar_size,
                             (Vector4) { 1.0f, 1.0f, 0.0f, 1.0f });
 
+    // Draw close button
+    renderer_draw_rectangle(APP.renderer,
+                            window_parameters.close_button_position,
+                            window_parameters.close_button_size,
+                            (Vector4) { 1.0, 0.0f, 0.0f, 1.0f });
+
     // Draw window content
     {
         Vector2 window_content_size = { window->width, window->height };

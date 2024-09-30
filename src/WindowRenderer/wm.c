@@ -35,6 +35,12 @@ WMWindowParameters wm_compute_window_parameters(Window* window)
         .y = title_bar_thickness,
     };
 
+    const Vector2 close_button_position = title_bar_position;
+    const Vector2 close_button_size = {
+        .x = title_bar_thickness,
+        .y = title_bar_thickness,
+    };
+
     const Vector2 content_position = {
         .x = window->x + border_thickness,
         .y = window->y + title_bar_thickness,
@@ -63,6 +69,9 @@ WMWindowParameters wm_compute_window_parameters(Window* window)
         .title_bar_thickness = title_bar_thickness,
         .title_bar_position = title_bar_position,
         .title_bar_size = title_bar_size,
+
+        .close_button_position = close_button_position,
+        .close_button_size = close_button_size,
 
         .content_position = content_position,
 
