@@ -156,17 +156,6 @@ void application_resize(int width, int height)
 
 static void draw_window(EGLDisplay* egl_display, Window* window)
 {
-    // Draw title bar
-    {
-        Vector2 title_bar_position = { window->x, window->y };
-        Vector2 title_bar_size = { window->width, WINDOW_TITLE_BAR_THICKNESS };
-
-        renderer_draw_rectangle(APP.renderer,
-                                title_bar_position,
-                                title_bar_size,
-                                (Vector4) { 1.0f, 1.0f, 0.0f, 1.0f });
-    }
-
     Vector2 window_content_position = { window->x, window->y + WINDOW_TITLE_BAR_THICKNESS };
     Vector2 window_content_size = { window->width, window->height };
 
@@ -186,6 +175,17 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
                                 window_border_position,
                                 window_border_size,
                                 (Vector4) { 0.0f, 0.0f, 1.0f, 1.0f });
+    }
+
+    // Draw title bar
+    {
+        Vector2 title_bar_position = { window->x, window->y };
+        Vector2 title_bar_size = { window->width, WINDOW_TITLE_BAR_THICKNESS };
+
+        renderer_draw_rectangle(APP.renderer,
+                                title_bar_position,
+                                title_bar_size,
+                                (Vector4) { 1.0f, 1.0f, 0.0f, 1.0f });
     }
 
     // Draw window content
