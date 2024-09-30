@@ -4,7 +4,7 @@
 
 #include "input.h"
 #include "input_events/mouse.h"
-#include "server.h"
+#include "server/server.h"
 
 static bool check_collision_point_rec(Vector2 point, Vector2 rec_position, Vector2 rec_size)
 {

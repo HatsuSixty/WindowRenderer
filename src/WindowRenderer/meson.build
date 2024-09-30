@@ -3,6 +3,7 @@ window_renderer_inc = include_directories('include')
 cc = meson.get_compiler('c')
 
 executable('WindowRenderer', [
+  'input_events/mouse.c',
   'renderer/opengl/gl_errors.c',
   'renderer/opengl/texture.c',
   'renderer/opengl/vertex_array.c',
@@ -11,13 +12,12 @@ executable('WindowRenderer', [
   'renderer/opengl/shader.c',
   'renderer/renderer.c',
   'renderer/glext.c',
-  'input_events/mouse.c',
-  'input.c',
-  'session.c',
-  'main.c',
+  'server/session.c',
+  'server/server.c',
+  'server/window.c',
   'application.c',
-  'server.c',
-  'window.c',
+  'input.c',
+  'main.c',
   'wm.c',
   'log.c',
 ], include_directories : [

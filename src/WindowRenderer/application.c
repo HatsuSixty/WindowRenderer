@@ -6,8 +6,8 @@
 #include "renderer/opengl/gl_errors.h"
 #include "renderer/opengl/texture.h"
 #include "renderer/renderer.h"
-#include "server.h"
-#include "session.h"
+#include "server/server.h"
+#include "server/session.h"
 #include "wm.h"
 
 #include <errno.h>

@@ -2,8 +2,8 @@
 
 #include "types.h"
 
-#include "window.h"
-#include "server.h"
+#include "server/window.h"
+#include "server/server.h"
 
 typedef struct {
     float border_thickness;
