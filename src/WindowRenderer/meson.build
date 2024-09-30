@@ -15,10 +15,10 @@ executable('WindowRenderer', [
   'server/session.c',
   'server/server.c',
   'server/window.c',
+  'window_manager.c',
   'application.c',
   'input.c',
   'main.c',
-  'wm.c',
   'log.c',
 ], include_directories : [
   window_renderer_inc,

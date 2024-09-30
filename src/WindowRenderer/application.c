@@ -8,7 +8,7 @@
 #include "renderer/renderer.h"
 #include "server/server.h"
 #include "server/session.h"
-#include "wm.h"
+#include "window_manager.h"
 
 #include <errno.h>
 #include <math.h>
