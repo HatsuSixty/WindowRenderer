@@ -5,7 +5,9 @@
 #include "input.h"
 #include "input_events/mouse.h"
 #include "server/server.h"
-#include "log.h"
+#include "server/window.h"
+
+#include "WindowRenderer/windowrenderer.h"
 
 static bool check_collision_point_rec(Vector2 point, Vector2 rec_position, Vector2 rec_size)
 {
@@ -126,7 +128,9 @@ void wm_update(Server* server, Vector2 cursor_position)
                                           window_parameters.close_button_position,
                                           window_parameters.close_button_size)
                 && is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
-                log_log(LOG_INFO, "Close button of window ID %d clicked!", window->id);
+                window_send_event(window, (WindowRendererEvent) {
+                                              .kind = WREVENT_CLOSE_WINDOW,
+                                          });
             }
         }
     }

@@ -18,6 +18,12 @@
 
 #define WR_SESSION_HASH_ENV "WINDOW_RENDERER_SESSION_HASH"
 
+// ========================= //
+
+/*                             *
+ *   -=-= BEGIN COMMAND =-=-   *
+ *                            */
+
 typedef enum {
     WRCMD_CREATE_WINDOW,
     WRCMD_CLOSE_WINDOW,
@@ -33,6 +39,16 @@ typedef struct {
         WindowRendererSetWindowDmaBuf set_window_dma_buf;
     } command;
 } WindowRendererCommand;
+
+/*                           *
+ *   -=-= END COMMAND =-=-   *
+ *                           */
+
+// ========================= //
+
+/*                              *
+ *   -=-= BEGIN RESPONSE =-=-   *
+ *                              */
 
 typedef enum {
     WRSTATUS_INVALID_COMMAND,
@@ -55,3 +71,27 @@ typedef struct {
         WindowRendererWindowId window_id;
     } response;
 } WindowRendererResponse;
+
+/*                            *
+ *   -=-= END RESPONSE =-=-   *
+ *                            */
+
+// ========================= //
+
+/*                           *
+ *   -=-= BEGIN EVENT =-=-   *
+ *                           */
+
+typedef enum {
+    WREVENT_CLOSE_WINDOW,
+} WindowRendererEventKind;
+
+typedef struct {
+    WindowRendererEventKind kind;
+} WindowRendererEvent;
+
+/*                         *
+ *   -=-= END EVENT =-=-   *
+ *                         */
+
+// ========================= //

@@ -1,7 +1,7 @@
 #include "libwr.h"
 
-#include "server_session.h"
 #include "log.h"
+#include "server_session.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -70,6 +70,29 @@ static bool recv_response(int sockfd, WindowRendererResponse* response)
     return true;
 }
 
+static bool recv_event(int sockfd, WindowRendererEvent* event)
+{
+    struct msghdr message_header = { 0 };
+
+    struct iovec io_vector = {
+        .iov_base = event,
+        .iov_len = sizeof(*event)
+    };
+
+    message_header.msg_iov = &io_vector;
+    message_header.msg_iovlen = 1;
+
+    int num_of_bytes_recvd = recvmsg(sockfd, &message_header, 0);
+
+    if (num_of_bytes_recvd <= 0) {
+        log_log(LOG_ERROR, "Could not receive data from the server: %s",
+                strerror(errno));
+        return false;
+    }
+
+    return true;
+}
+
 static bool is_response_valid(char const* command, WindowRendererResponseKind expected,
                               WindowRendererResponse response)
 {
@@ -115,9 +138,13 @@ int wr_server_connect()
     return sockfd;
 }
 
-void wr_server_disconnect(int serverfd)
+bool wr_server_disconnect(int serverfd)
 {
-    close(serverfd);
+    if (close(serverfd) == -1) {
+        log_log(LOG_ERROR, "Failed to close server socket");
+        return false;
+    }
+    return true;
 }
 
 int wr_create_window(int serverfd, char const* title, int width, int height)
@@ -183,4 +210,42 @@ bool wr_set_window_dma_buf(int serverfd, int window_id, WRDmaBuf dma_buf)
         return false;
 
     return true;
+}
+
+int wr_event_connect(int window_id)
+{
+    int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sockfd == -1) {
+        log_log(LOG_ERROR, "Could not open event socket: %s", strerror(errno));
+        return -1;
+    }
+
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path,
+            server_session_generate_window_socket_name(window_id),
+            sizeof(addr.sun_path) - 1);
+
+    if (connect(sockfd, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) == -1) {
+        log_log(LOG_ERROR, "Could not connect to event socket: %s", strerror(errno));
+        close(sockfd);
+        return -1;
+    }
+
+    return sockfd;
+}
+
+bool wr_event_disconnect(int eventfd)
+{
+    if (close(eventfd) == -1) {
+        log_log(LOG_ERROR, "Failed to close event socket");
+        return false;
+    }
+    return true;
+}
+
+bool wr_event_receive(int eventfd, WindowRendererEvent* event)
+{
+    return recv_event(eventfd, event);
 }

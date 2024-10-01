@@ -6,6 +6,7 @@ executable('TestClient', [
   dependency('gl'),
   dependency('egl'),
   dependency('gbm'),
+  window_renderer_dep,
   libWR_dep,
   WRGL_dep,
 ])

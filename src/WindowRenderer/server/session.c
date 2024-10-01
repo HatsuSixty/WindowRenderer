@@ -82,3 +82,24 @@ char* session_generate_socket_name()
 
     return socket_name;
 }
+
+char* session_generate_window_socket_name(uint32_t window_id)
+{
+    char const* socket_name_prefix = "/tmp/WindowRenderer_";
+    char const* socket_name_postfix = ".sock";
+    char const* underscore = "_";
+
+    size_t window_id_len = snprintf(NULL, 0, "%d", window_id);
+
+    size_t socket_name_length = strlen(socket_name_prefix) + SESSION_HASH_LENGTH
+        + strlen(underscore) + window_id_len
+        + strlen(socket_name_postfix) + 1;
+
+    char* socket_name = string_store_alloc(socket_name_length);
+    snprintf(socket_name, socket_name_length, "%s%s%s%d%s",
+             socket_name_prefix, session_hash,
+             underscore, window_id,
+             socket_name_postfix);
+
+    return socket_name;
+}

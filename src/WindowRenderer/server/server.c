@@ -19,7 +19,7 @@
 
 #define LISTEN_QUEUE 20
 
-bool file_exists(char const* file_path)
+static bool file_exists(char const* file_path)
 {
     struct stat buf = { 0 };
     return stat(file_path, &buf) == 0;

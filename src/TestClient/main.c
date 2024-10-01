@@ -1,4 +1,3 @@
-#include "WRGL/wrgl.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -9,9 +8,11 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include <libwr.h>
 #include <WRGL/buffer.h>
 #include <WRGL/context.h>
+#include <WRGL/wrgl.h>
+#include <WindowRenderer/windowrenderer.h>
+#include <libwr.h>
 
 #include <GL/gl.h>
 
@@ -75,12 +76,31 @@ int main(int argc, char const** argv)
 
     glFlush();
 
-    sleep(10);
+    int eventfd = wr_event_connect(window_id);
+    if (eventfd == -1) {
+        return 1;
+    }
+
+    WindowRendererEvent event;
+    if (!wr_event_receive(eventfd, &event)) {
+        return 1;
+    }
+    log_log(LOG_INFO, "Received event: %d", event.kind);
+
+    if (!wr_event_disconnect(eventfd)) {
+        return 1;
+    }
 
     wrgl_context_destroy(wrgl_context);
     wrgl_buffer_destroy(wrgl_buffer);
-    wr_close_window(serverfd, window_id);
-    wr_server_disconnect(serverfd);
+
+    if (!wr_close_window(serverfd, window_id)) {
+        return 1;
+    }
+
+    if (!wr_server_disconnect(serverfd)) {
+        return 1;
+    }
 
     return 0;
 }
