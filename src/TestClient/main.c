@@ -81,11 +81,41 @@ int main(int argc, char const** argv)
         return 1;
     }
 
-    WindowRendererEvent event;
-    if (!wr_event_receive(eventfd, &event)) {
-        return 1;
+    while (true) {
+        WindowRendererEvent event;
+        if (!wr_event_receive(eventfd, &event)) {
+            return 1;
+        }
+
+        if (event.kind == WREVENT_CLOSE_WINDOW) {
+            log_log(LOG_INFO, "Received close window event", event.kind);
+            break;
+        }
+
+        if (event.kind == WREVENT_MOUSE_BUTTON) {
+            char const* mouse_action
+                = event.event.mouse_button.action == WR_MOUSE_BUTTON_ACTION_PRESS
+                ? "pressed"
+                : "released";
+
+            switch (event.event.mouse_button.kind) {
+            case WR_MOUSE_BUTTON_LEFT:
+                log_log(LOG_INFO, "Left mouse button %s", mouse_action);
+                break;
+
+            case WR_MOUSE_BUTTON_RIGHT:
+                log_log(LOG_INFO, "Right mouse button %s", mouse_action);
+                break;
+
+            case WR_MOUSE_BUTTON_MIDDLE:
+                log_log(LOG_INFO, "Middle mouse button %s", mouse_action);
+                break;
+
+            case COUNT_WR_MOUSE_BUTTON:
+                break;
+            }
+        }
     }
-    log_log(LOG_INFO, "Received event: %d", event.kind);
 
     if (!wr_event_disconnect(eventfd)) {
         return 1;

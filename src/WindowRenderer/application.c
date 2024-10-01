@@ -12,6 +12,7 @@
 
 #include <errno.h>
 #include <math.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -90,6 +91,9 @@ bool application_init(int argc, char const** argv)
     }
 
     // Proceeed with server initialization
+
+    // Set signal handler to ignore SIGPIPE
+    signal(SIGPIPE, SIG_IGN);
 
     char const* command = NULL;
     if (argc > 1)

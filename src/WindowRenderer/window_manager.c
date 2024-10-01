@@ -93,7 +93,7 @@ void wm_update(Server* server, Vector2 cursor_position)
      */
     server_lock_windows(server);
 
-    // Handle window dragging/close button
+    // Handle window dragging/events
     {
         for (size_t i = 0; i < server_get_window_count(server); ++i) {
             Window* window = server_get_windows(server)[i];
@@ -131,6 +131,29 @@ void wm_update(Server* server, Vector2 cursor_position)
                 window_send_event(window, (WindowRendererEvent) {
                                               .kind = WREVENT_CLOSE_WINDOW,
                                           });
+            }
+
+            // Handle click events
+            if (window_is_active
+                && check_collision_point_rec(cursor_position,
+                                             window_parameters.content_position,
+                                             (Vector2) { window->width, window->height })) {
+                for (size_t i = 0; i < COUNT_INPUT_MOUSE_BUTTON; ++i) {
+                    if (is_mouse_button_just_pressed(i) || is_mouse_button_just_released(i)) {
+                        WindowRendererEvent event = {
+                            .kind = WREVENT_MOUSE_BUTTON,
+                            .event = {
+                                .mouse_button = {
+                                    .kind = i,
+                                    .action = is_mouse_button_just_pressed(i)
+                                        ? WR_MOUSE_BUTTON_ACTION_PRESS
+                                        : WR_MOUSE_BUTTON_ACTION_RELEASE,
+                                },
+                            },
+                        };
+                        window_send_event(window, event);
+                    }
+                }
             }
         }
     }

@@ -8,7 +8,7 @@ typedef enum {
 } InputMouseAxis;
 
 typedef enum {
-    INPUT_MOUSE_BUTTON_LEFT,
+    INPUT_MOUSE_BUTTON_LEFT = 0,
     INPUT_MOUSE_BUTTON_RIGHT,
     INPUT_MOUSE_BUTTON_MIDDLE,
     COUNT_INPUT_MOUSE_BUTTON,

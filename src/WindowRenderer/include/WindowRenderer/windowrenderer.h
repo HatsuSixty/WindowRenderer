@@ -6,6 +6,8 @@
 
 #include "responses/window_id.h"
 
+#include "events/mouse_button.h"
+
 /*
  * In the enviroment variable defined by WR_SESSION_HASH_ENV
  * there should be the session hash of the WindowRenderer instance.
@@ -84,10 +86,15 @@ typedef struct {
 
 typedef enum {
     WREVENT_CLOSE_WINDOW,
+    WREVENT_MOUSE_BUTTON,
 } WindowRendererEventKind;
 
 typedef struct {
     WindowRendererEventKind kind;
+
+    union {
+        WindowRendererMouseButton mouse_button;
+    } event;
 } WindowRendererEvent;
 
 /*                         *
