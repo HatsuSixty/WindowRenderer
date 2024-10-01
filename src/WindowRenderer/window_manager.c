@@ -127,7 +127,7 @@ void wm_update(Server* server, Vector2 cursor_position)
             if (check_collision_point_rec(cursor_position,
                                           window_parameters.close_button_position,
                                           window_parameters.close_button_size)
-                && is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
+                && is_mouse_button_just_released(INPUT_MOUSE_BUTTON_LEFT)) {
                 window_send_event(window, (WindowRendererEvent) {
                                               .kind = WREVENT_CLOSE_WINDOW,
                                           });
