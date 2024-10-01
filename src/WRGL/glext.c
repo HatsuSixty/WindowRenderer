@@ -10,18 +10,18 @@
 
 #include "log.h"
 
-bool WRGL_extensions_loaded = false;
+bool extensions_loaded = false;
 
-PFNEGLGETPLATFORMDISPLAYEXTPROC WRGL_eglGetPlatformDisplayEXT = NULL;
-PFNEGLCREATEIMAGEKHRPROC WRGL_eglCreateImageKHR = NULL;
-PFNEGLDESTROYIMAGEKHRPROC WRGL_eglDestroyImageKHR = NULL;
-PFNGLEGLIMAGETARGETTEXTURE2DOESPROC WRGL_glEGLImageTargetTexture2DOES = NULL;
+PFNEGLGETPLATFORMDISPLAYEXTPROC eglGetPlatformDisplayEXT = NULL;
+PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = NULL;
+PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = NULL;
+PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES = NULL;
 
-#define LOAD_PROC(variable, proc)                                                 \
+#define LOAD_PROC(name)                                                           \
     do {                                                                          \
-        variable = (typeof(variable))eglGetProcAddress(#proc);                    \
-        if (!variable) {                                                          \
-            log_log(LOG_ERROR, "Support for the function `" #proc "` is "         \
+        name = (typeof(name))eglGetProcAddress(#name);                            \
+        if (!name) {                                                              \
+            log_log(LOG_ERROR, "Support for the function `" #name "` is "         \
                                "required, but the function could not be loaded"); \
             return false;                                                         \
         }                                                                         \
@@ -29,15 +29,15 @@ PFNGLEGLIMAGETARGETTEXTURE2DOESPROC WRGL_glEGLImageTargetTexture2DOES = NULL;
 
 bool glext_load_extensions()
 {
-    if (WRGL_extensions_loaded)
+    if (extensions_loaded)
         return true;
 
-    LOAD_PROC(WRGL_eglGetPlatformDisplayEXT, eglGetPlatformDisplayEXT);
-    LOAD_PROC(WRGL_eglCreateImageKHR, eglCreateImageKHR);
-    LOAD_PROC(WRGL_eglDestroyImageKHR, eglDestroyImageKHR);
-    LOAD_PROC(WRGL_glEGLImageTargetTexture2DOES, glEGLImageTargetTexture2DOES);
+    LOAD_PROC(eglGetPlatformDisplayEXT);
+    LOAD_PROC(eglCreateImageKHR);
+    LOAD_PROC(eglDestroyImageKHR);
+    LOAD_PROC(glEGLImageTargetTexture2DOES);
 
-    WRGL_extensions_loaded = true;
+    extensions_loaded = true;
 
     return true;
 }

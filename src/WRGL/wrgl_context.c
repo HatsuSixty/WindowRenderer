@@ -201,8 +201,8 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
         EGL_NONE
     };
 
-    wrgl_context->egl_image = WRGL_eglCreateImageKHR(wrgl_context->egl_display, EGL_NO_CONTEXT,
-                                                     EGL_LINUX_DMA_BUF_EXT, NULL, image_attrs);
+    wrgl_context->egl_image = eglCreateImageKHR(wrgl_context->egl_display, EGL_NO_CONTEXT,
+                                                EGL_LINUX_DMA_BUF_EXT, NULL, image_attrs);
     if (wrgl_context->egl_image == EGL_NO_IMAGE_KHR) {
         log_log(LOG_ERROR, "Could not create EGL image from GBM buffer");
         failed = true;
@@ -215,7 +215,7 @@ WRGLContext* wrgl_context_create_for_buffer(WRGLBuffer* wrgl_buffer,
     gl(BindTexture, GL_TEXTURE_2D, wrgl_context->gl_texture);
 
     gl_clear_errors();
-    WRGL_glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, wrgl_context->egl_image);
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, wrgl_context->egl_image);
     gl_check_errors(__FILE__, __LINE__);
 
     gl(TexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -292,7 +292,7 @@ defer:
             gl(DeleteTextures, 1, &wrgl_context->gl_texture);
 
         if (wrgl_context->egl_image != 0)
-            WRGL_eglDestroyImageKHR(wrgl_context->egl_context, wrgl_context->egl_image);
+            eglDestroyImageKHR(wrgl_context->egl_context, wrgl_context->egl_image);
 
         if (wrgl_context->egl_context != 0)
             eglDestroyContext(wrgl_context->egl_display, wrgl_context->egl_context);
@@ -311,7 +311,7 @@ void wrgl_context_destroy(WRGLContext* wrgl_context)
     gl(DeleteFramebuffers, 1, &wrgl_context->gl_framebuffer_object);
     gl(DeleteTextures, 1, &wrgl_context->gl_texture);
 
-    WRGL_eglDestroyImageKHR(wrgl_context->egl_context, wrgl_context->egl_image);
+    eglDestroyImageKHR(wrgl_context->egl_context, wrgl_context->egl_image);
     eglDestroyContext(wrgl_context->egl_display, wrgl_context->egl_context);
 
     free(wrgl_context);

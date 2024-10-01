@@ -70,8 +70,8 @@ WRGLBuffer* wrgl_buffer_create_from_window(int serverfd, char const* gpu_device,
     }
 
     // Create EGL display from the GBM device
-    wrgl_buffer->egl_display = WRGL_eglGetPlatformDisplayEXT(EGL_PLATFORM_GBM_MESA,
-                                                             wrgl_buffer->gbm, NULL);
+    wrgl_buffer->egl_display = eglGetPlatformDisplayEXT(EGL_PLATFORM_GBM_MESA,
+                                                        wrgl_buffer->gbm, NULL);
     if (wrgl_buffer->egl_display == EGL_NO_DISPLAY) {
         log_log(LOG_ERROR, "Failed to get EGL display");
         failed = true;
