@@ -61,7 +61,7 @@ WMWindowParameters wm_compute_window_parameters(Window* window)
         .y = window->height + border_thickness * 2.f,
     };
 
-    const Vector2 total_area_position = title_bar_position;
+    const Vector2 total_area_position = close_button_position;
     const Vector2 total_area_size = {
         .x = border_size.x,
         .y = border_size.y + title_bar_thickness - border_thickness,
