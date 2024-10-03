@@ -7,6 +7,7 @@
 #include "responses/window_id.h"
 
 #include "events/mouse_button.h"
+#include "events/mouse_move.h"
 
 /*
  * In the enviroment variable defined by WR_SESSION_HASH_ENV
@@ -87,6 +88,7 @@ typedef struct {
 typedef enum {
     WREVENT_CLOSE_WINDOW,
     WREVENT_MOUSE_BUTTON,
+    WREVENT_MOUSE_MOVE,
 } WindowRendererEventKind;
 
 typedef struct {
@@ -94,6 +96,7 @@ typedef struct {
 
     union {
         WindowRendererMouseButton mouse_button;
+        WindowRendererMouseMove mouse_move;
     } event;
 } WindowRendererEvent;
 

@@ -115,6 +115,11 @@ int main(int argc, char const** argv)
                 break;
             }
         }
+
+        if (event.kind == WREVENT_MOUSE_MOVE) {
+            log_log(LOG_INFO, "Mouse moved. Current position: { %d, %d }",
+                    event.event.mouse_move.position_x, event.event.mouse_move.position_y);
+        }
     }
 
     if (!wr_event_disconnect(eventfd)) {

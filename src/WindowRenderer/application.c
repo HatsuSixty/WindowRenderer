@@ -242,9 +242,10 @@ void application_render(EGLDisplay* egl_display)
 
 void application_update()
 {
-    wm_update(APP.server, APP.cursor_position);
-
     Vector2 mouse_delta = get_mouse_delta();
+
+    wm_update(APP.server, APP.cursor_position, mouse_delta);
+
     APP.cursor_position = vector2_clamp((Vector2) {
                                             .x = APP.cursor_position.x + mouse_delta.x,
                                             .y = APP.cursor_position.y + mouse_delta.y,

@@ -86,7 +86,8 @@ WMWindowParameters wm_compute_window_parameters(Window* window)
     };
 }
 
-void wm_update(Server* server, Vector2 cursor_position)
+void wm_update(Server* server,
+               Vector2 cursor_position, Vector2 cursor_delta)
 {
     /*
      * Start updating windows: lock window access
@@ -133,11 +134,13 @@ void wm_update(Server* server, Vector2 cursor_position)
                                           });
             }
 
-            // Handle click events
+            // Handle mouse click/move events
             if (window_is_active
                 && check_collision_point_rec(cursor_position,
                                              window_parameters.content_position,
                                              (Vector2) { window->width, window->height })) {
+
+                // Handle click events
                 for (size_t i = 0; i < COUNT_INPUT_MOUSE_BUTTON; ++i) {
                     if (is_mouse_button_just_pressed(i) || is_mouse_button_just_released(i)) {
                         WindowRendererEvent event = {
@@ -151,8 +154,24 @@ void wm_update(Server* server, Vector2 cursor_position)
                                 },
                             },
                         };
+
                         window_send_event(window, event);
                     }
+                }
+
+                // Handle move events
+                if (cursor_delta.x != 0 || cursor_delta.y != 0) {
+                    WindowRendererEvent event = {
+                        .kind = WREVENT_MOUSE_MOVE,
+                        .event = {
+                            .mouse_move = {
+                                .position_x = cursor_position.x - window_parameters.content_position.x,
+                                .position_y = cursor_position.y - window_parameters.content_position.y,
+                            },
+                        },
+                    };
+
+                    window_send_event(window, event);
                 }
             }
         }
