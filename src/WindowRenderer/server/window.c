@@ -151,7 +151,6 @@ Window* window_create(char const* title, int width, int height)
         window->event_listener_thread_running = false;
         goto defer;
     }
-    pthread_detach(window->event_listener_thread);
 
 defer:
     if (event_socket_failed) {
