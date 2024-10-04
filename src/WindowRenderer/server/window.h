@@ -7,6 +7,8 @@
 
 #include "WindowRenderer/windowrenderer.h"
 
+#include "event_list.h"
+
 typedef struct {
     bool present;
 
@@ -27,13 +29,15 @@ typedef struct {
     int width;
     int height;
 
+    EventList event_list;
+    pthread_mutex_t event_list_mutex;
+
+    bool event_listener_thread_running;
     pthread_t event_listener_thread;
     int event_socket;
-    int client_event_socket;
 } Window;
 
 Window* window_create(char const* title, int width, int height);
 void window_destroy(Window* window);
 
-// Returns false on error
-bool window_send_event(Window* window, WindowRendererEvent event);
+void window_send_event(Window* window, WindowRendererEvent event);

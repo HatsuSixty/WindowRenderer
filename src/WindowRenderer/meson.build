@@ -15,6 +15,7 @@ executable('WindowRenderer', [
   'server/session.c',
   'server/server.c',
   'server/window.c',
+  'server/event_list.c',
   'window_manager.c',
   'application.c',
   'input.c',
