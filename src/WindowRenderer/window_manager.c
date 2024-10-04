@@ -18,7 +18,7 @@ static bool check_collision_point_rec(Vector2 point, Vector2 rec_position, Vecto
 }
 
 struct {
-    uint32_t dragged_window_id;
+    int dragged_window_id;
     Vector2 drag_offset;
 } WM;
 

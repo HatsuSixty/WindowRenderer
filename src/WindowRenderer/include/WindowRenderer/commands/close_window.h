@@ -3,5 +3,5 @@
 #include <stdint.h>
 
 typedef struct {
-    uint32_t window_id;
+    int window_id;
 } WindowRendererCloseWindow;

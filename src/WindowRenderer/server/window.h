@@ -20,7 +20,7 @@ typedef struct {
 } WindowDmaBuf;
 
 typedef struct {
-    uint32_t id;
+    int id;
     char const* title;
     WindowDmaBuf dma_buf;
 

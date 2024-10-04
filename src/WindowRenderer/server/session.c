@@ -59,11 +59,11 @@ char const* session_get_hash()
     return session_hash;
 }
 
-uint32_t window_id_tracker = 0;
+int window_id_tracker = 0;
 
-uint32_t session_generate_window_id()
+int session_generate_window_id()
 {
-    uint32_t id = window_id_tracker;
+    int id = window_id_tracker;
     window_id_tracker++;
     return id;
 }
@@ -83,7 +83,7 @@ char* session_generate_socket_name()
     return socket_name;
 }
 
-char* session_generate_window_socket_name(uint32_t window_id)
+char* session_generate_window_socket_name(int window_id)
 {
     char const* socket_name_prefix = "/tmp/WindowRenderer_";
     char const* socket_name_postfix = ".sock";

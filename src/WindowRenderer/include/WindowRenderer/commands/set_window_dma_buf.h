@@ -10,6 +10,6 @@ typedef struct {
 } WindowRendererDmaBuf;
 
 typedef struct {
-    uint32_t window_id;
+    int window_id;
     WindowRendererDmaBuf dma_buf;
 } WindowRendererSetWindowDmaBuf;

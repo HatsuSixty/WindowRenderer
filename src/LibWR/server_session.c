@@ -52,7 +52,7 @@ char* server_session_get_socket_name()
     return socket_name;
 }
 
-char* server_session_generate_window_socket_name(uint32_t window_id)
+char* server_session_generate_window_socket_name(int window_id)
 {
     char const* socket_name_prefix = "/tmp/WindowRenderer_";
     char const* socket_name_postfix = ".sock";

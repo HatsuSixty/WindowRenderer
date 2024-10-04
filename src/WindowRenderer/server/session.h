@@ -6,6 +6,6 @@ void session_init();
 
 char const* session_get_hash();
 
-uint32_t session_generate_window_id();
+int session_generate_window_id();
 char* session_generate_socket_name();
-char* session_generate_window_socket_name(uint32_t window_id);
+char* session_generate_window_socket_name(int window_id);

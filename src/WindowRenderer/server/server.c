@@ -50,7 +50,7 @@ void server_destroy(Server* server)
     free(server);
 }
 
-static int server_find_window(Server* server, uint32_t id)
+static int server_find_window(Server* server, int id)
 {
     for (size_t i = 0; i < server->windows_count; ++i) {
         if (server->windows[i]->id == id) {
@@ -95,7 +95,7 @@ static WindowRendererResponse server_create_window(Server* server,
     return response;
 }
 
-static WindowRendererResponse server_close_window(Server* server, uint32_t window_id)
+static WindowRendererResponse server_close_window(Server* server, int window_id)
 {
     server_lock_windows(server);
 
@@ -118,7 +118,7 @@ defer:
     return response;
 }
 
-static WindowRendererResponse server_set_window_dma_buf(Server* server, uint32_t window_id,
+static WindowRendererResponse server_set_window_dma_buf(Server* server, int window_id,
                                                         WindowRendererDmaBuf dma_buf, int dma_buf_fd)
 {
     server_lock_windows(server);
