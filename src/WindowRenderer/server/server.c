@@ -354,9 +354,6 @@ bool server_run(Server* server)
     strncpy(server_addr.sun_path, server->socket_path,
             sizeof(server_addr.sun_path) - 1);
 
-    int opt = SO_REUSEADDR;
-    setsockopt(server->socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
     int bind_result = bind(server->socket, (struct sockaddr*)&server_addr,
                            sizeof(server_addr));
     if (bind_result == -1) {
