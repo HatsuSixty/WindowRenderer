@@ -11,7 +11,6 @@
 #include "window_manager.h"
 
 #include <errno.h>
-#include <math.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,20 +47,9 @@ static bool execute_command(int argc, char const** argv, int delay)
     return true;
 }
 
-static inline Vector2 vector2_clamp(Vector2 v, Vector2 min, Vector2 max)
-{
-    return (Vector2) {
-        .x = fminf(max.x, fmaxf(min.x, v.x)),
-        .y = fminf(max.y, fmaxf(min.y, v.y)),
-    };
-}
-
 struct {
     Server* server;
     Renderer* renderer;
-
-    Vector2 cursor_position;
-    Vector2 minimum_screen_size;
 } APP;
 
 bool application_init(int argc, char const** argv)
@@ -126,7 +114,7 @@ void application_terminate()
 
 bool application_init_graphics(int width, int height)
 {
-    APP.minimum_screen_size = (Vector2) { width, height };
+    input_set_cursor_bounds((Vector2) { width, height });
 
     APP.renderer = renderer_create(width, height);
     if (!APP.renderer)
@@ -141,10 +129,14 @@ void application_destroy_graphics()
 
 void application_resize(int width, int height)
 {
-    if (width < APP.minimum_screen_size.x)
-        APP.minimum_screen_size.x = width;
-    if (width < APP.minimum_screen_size.y)
-        APP.minimum_screen_size.y = height;
+    Vector2 cursor_bounds = input_get_cursor_bounds();
+
+    if (width < cursor_bounds.x)
+        cursor_bounds.x = width;
+    if (width < cursor_bounds.y)
+        cursor_bounds.y = height;
+
+    input_set_cursor_bounds(cursor_bounds);
 
     renderer_resize(APP.renderer, width, height);
 }
@@ -234,7 +226,7 @@ void application_render(EGLDisplay* egl_display)
     }
 
     renderer_draw_rectangle(APP.renderer,
-                            APP.cursor_position, (Vector2) { 5, 5 },
+                            get_cursor_position(), (Vector2) { 5, 5 },
                             (Vector4) { 0.0f, 1.0f, 0.0f, 1.0f });
 
     server_unlock_windows(APP.server);
@@ -242,14 +234,6 @@ void application_render(EGLDisplay* egl_display)
 
 void application_update()
 {
-    Vector2 mouse_delta = get_mouse_delta();
-
-    wm_update(APP.server, APP.cursor_position, mouse_delta);
-
-    APP.cursor_position = vector2_clamp((Vector2) {
-                                            .x = APP.cursor_position.x + mouse_delta.x,
-                                            .y = APP.cursor_position.y + mouse_delta.y,
-                                        },
-                                        (Vector2) { 0, 0 }, APP.minimum_screen_size);
+    wm_update(APP.server);
     input_update();
 }

@@ -26,5 +26,4 @@ typedef struct {
 void wm_init();
 
 WMWindowParameters wm_compute_window_parameters(Window* window);
-void wm_update(Server* server,
-               Vector2 cursor_position, Vector2 cursor_delta);
+void wm_update(Server* server);

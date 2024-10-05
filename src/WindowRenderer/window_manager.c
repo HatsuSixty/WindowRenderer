@@ -86,9 +86,11 @@ WMWindowParameters wm_compute_window_parameters(Window* window)
     };
 }
 
-void wm_update(Server* server,
-               Vector2 cursor_position, Vector2 cursor_delta)
+void wm_update(Server* server)
 {
+    Vector2 cursor_position = get_cursor_position();
+    Vector2 cursor_delta = get_cursor_delta();
+
     /*
      * Start updating windows: lock window access
      */
