@@ -87,9 +87,6 @@ WMWindowParameters wm_compute_window_parameters(Window* window)
 
 void wm_update(Server* server)
 {
-    Vector2 cursor_position = get_cursor_position();
-    Vector2 cursor_delta = get_cursor_delta();
-
     /*
      * Start updating windows: lock window access
      */
@@ -104,7 +101,7 @@ void wm_update(Server* server)
 
             // Handle window dragging
             {
-                if (check_collision_point_rec(cursor_position,
+                if (check_collision_point_rec(get_cursor_position(),
                                               window_parameters.title_bar_position,
                                               window_parameters.title_bar_size)
                     && is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
@@ -113,8 +110,8 @@ void wm_update(Server* server)
 
                 if (WM.dragged_window_id == window->id) {
                     if (window_is_active) {
-                        window->x += cursor_delta.x;
-                        window->y += cursor_delta.y;
+                        window->x += get_cursor_delta().x;
+                        window->y += get_cursor_delta().y;
                     }
 
                     if (is_mouse_button_just_released(INPUT_MOUSE_BUTTON_LEFT)) {
@@ -124,7 +121,7 @@ void wm_update(Server* server)
             }
 
             // Handle close button
-            if (check_collision_point_rec(cursor_position,
+            if (check_collision_point_rec(get_cursor_position(),
                                           window_parameters.close_button_position,
                                           window_parameters.close_button_size)
                 && is_mouse_button_just_released(INPUT_MOUSE_BUTTON_LEFT)) {
@@ -135,7 +132,7 @@ void wm_update(Server* server)
 
             // Handle mouse click/move events
             if (window_is_active
-                && check_collision_point_rec(cursor_position,
+                && check_collision_point_rec(get_cursor_position(),
                                              window_parameters.content_position,
                                              (Vector2) { window->width, window->height })) {
 
@@ -159,13 +156,13 @@ void wm_update(Server* server)
                 }
 
                 // Handle move events
-                if (cursor_delta.x != 0 || cursor_delta.y != 0) {
+                if (get_cursor_delta().x != 0 || get_cursor_delta().y != 0) {
                     WindowRendererEvent event = {
                         .kind = WREVENT_MOUSE_MOVE,
                         .event = {
                             .mouse_move = {
-                                .position_x = cursor_position.x - window_parameters.content_position.x,
-                                .position_y = cursor_position.y - window_parameters.content_position.y,
+                                .position_x = get_cursor_position().x - window_parameters.content_position.x,
+                                .position_y = get_cursor_position().y - window_parameters.content_position.y,
                             },
                         },
                     };
@@ -184,7 +181,7 @@ void wm_update(Server* server)
                 Window* window = server_get_windows(server)[i];
                 WMWindowParameters window_parameters = wm_compute_window_parameters(window);
 
-                if (check_collision_point_rec(cursor_position,
+                if (check_collision_point_rec(get_cursor_position(),
                                               window_parameters.total_area_position,
                                               window_parameters.total_area_size)) {
                     if (window->id != server_top_window(server)->id) {
