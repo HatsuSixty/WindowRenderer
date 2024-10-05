@@ -19,7 +19,6 @@ static bool check_collision_point_rec(Vector2 point, Vector2 rec_position, Vecto
 
 struct {
     int dragged_window_id;
-    Vector2 drag_offset;
 } WM;
 
 void wm_init()
@@ -110,14 +109,12 @@ void wm_update(Server* server)
                                               window_parameters.title_bar_size)
                     && is_mouse_button_just_pressed(INPUT_MOUSE_BUTTON_LEFT)) {
                     WM.dragged_window_id = window->id;
-                    WM.drag_offset.x = cursor_position.x - window->x;
-                    WM.drag_offset.y = cursor_position.y - window->y;
                 }
 
                 if (WM.dragged_window_id == window->id) {
                     if (window_is_active) {
-                        window->x = cursor_position.x - WM.drag_offset.x;
-                        window->y = cursor_position.y - WM.drag_offset.y;
+                        window->x += cursor_delta.x;
+                        window->y += cursor_delta.y;
                     }
 
                     if (is_mouse_button_just_released(INPUT_MOUSE_BUTTON_LEFT)) {
