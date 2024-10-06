@@ -7,8 +7,8 @@
 
 #include <GLES2/gl2.h>
 
-#include "log.h"
 #include "gl_errors.h"
+#include "log.h"
 
 static GLuint compile_shader(GLenum type, const char* source)
 {
@@ -141,4 +141,19 @@ void shader_set_uniform_4f(Shader* shader, const char* name,
 {
     gl(Uniform4f, shader_get_uniform_location(shader, name),
        x, y, z, w);
+}
+
+void shader_set_uniform_mat4x4f(Shader* shader, const char* name,
+                                float m0, float m4, float m8, float m12,
+                                float m1, float m5, float m9, float m13,
+                                float m2, float m6, float m10, float m14,
+                                float m3, float m7, float m11, float m15)
+{
+    float matrix[] = {
+        m0, m4, m8, m12,
+        m1, m5, m9, m13,
+        m2, m6, m10, m14,
+        m3, m7, m11, m15
+    };
+    gl(UniformMatrix4fv, shader_get_uniform_location(shader, name), 1, GL_FALSE, matrix);
 }
