@@ -72,8 +72,6 @@ Renderer* renderer_create(int width, int height)
     renderer->screen_width = width;
     renderer->screen_height = height;
 
-    gl(Viewport, 0, 0, width, height);
-
     renderer->vertex_array = vertex_array_create();
 
     renderer->vertex_buffer = vertex_array_bind_vertex_buffer(renderer->vertex_array);

@@ -17,6 +17,7 @@
 #include "application.h"
 #include "log.h"
 #include "renderer/renderer.h"
+#include "renderer/opengl/gl_errors.h"
 
 bool should_quit = false;
 
@@ -48,11 +49,18 @@ static void initialize_gl(SRMConnector* connector, void* user_data)
 
     SRMConnectorMode* mode = srmConnectorGetCurrentMode(connector);
 
+    int width = srmConnectorModeGetWidth(mode);
+    int height = srmConnectorModeGetHeight(mode);
+
     if (screen_width == 0)
-        screen_width = srmConnectorModeGetWidth(mode);
+        screen_width = width;
 
     if (screen_height == 0)
-        screen_height = srmConnectorModeGetHeight(mode);
+        screen_height = height;
+
+    // `renderer_create` does not set the viewport. We
+    // must set it manually.
+    gl(Viewport, 0, 0, width, height);
 
     Renderer* renderer = renderer_create(screen_width, screen_height);
     application_init_graphics(renderer);

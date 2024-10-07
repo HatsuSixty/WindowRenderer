@@ -20,7 +20,7 @@ typedef struct {
     IndexBuffer* index_buffer;
 } Renderer;
 
-// Returns NULL on error
+// Returns NULL on error. DOES NOT SET THE VIEWPORT!!!
 Renderer* renderer_create(int width, int height);
 void renderer_destroy(Renderer* renderer);
 
