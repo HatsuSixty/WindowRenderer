@@ -69,10 +69,10 @@ Renderer* renderer_create(int width, int height)
     Renderer* renderer = malloc(sizeof(*renderer));
     memset(renderer, 0, sizeof(*renderer));
 
-    gl(Viewport, 0, 0, width, height);
-
     renderer->screen_width = width;
     renderer->screen_height = height;
+
+    gl(Viewport, 0, 0, width, height);
 
     renderer->vertex_array = vertex_array_create();
 
@@ -145,18 +145,16 @@ void renderer_destroy(Renderer* renderer)
     free(renderer);
 }
 
+Vector2 renderer_get_screen_size(Renderer* renderer)
+{
+    return (Vector2) { renderer->screen_width, renderer->screen_height };
+}
+
 void renderer_begin_drawing(Renderer* renderer)
 {
     vertex_array_bind(renderer->vertex_array);
     shader_bind(renderer->default_shader);
     renderer_bind_texture(renderer, renderer->default_texture);
-}
-
-void renderer_resize(Renderer* renderer, int width, int height)
-{
-    gl(Viewport, 0, 0, width, height);
-    renderer->screen_width = width;
-    renderer->screen_height = height;
 }
 
 void renderer_draw_triangle(Renderer* renderer,

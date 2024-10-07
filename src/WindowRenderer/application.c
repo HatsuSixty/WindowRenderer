@@ -49,7 +49,6 @@ static bool execute_command(int argc, char const** argv, int delay)
 
 struct {
     Server* server;
-    Renderer* renderer;
 } APP;
 
 bool application_init(int argc, char const** argv)
@@ -112,53 +111,29 @@ void application_terminate()
     server_destroy(APP.server);
 }
 
-bool application_init_graphics(int width, int height)
+void application_init_graphics(Renderer* renderer)
 {
-    input_set_cursor_bounds((Vector2) { width, height });
-
-    APP.renderer = renderer_create(width, height);
-    if (!APP.renderer)
-        return false;
-    return true;
+    input_set_cursor_bounds(renderer_get_screen_size(renderer));
 }
 
-void application_destroy_graphics()
-{
-    renderer_destroy(APP.renderer);
-}
-
-void application_resize(int width, int height)
-{
-    Vector2 cursor_bounds = input_get_cursor_bounds();
-
-    if (width < cursor_bounds.x)
-        cursor_bounds.x = width;
-    if (width < cursor_bounds.y)
-        cursor_bounds.y = height;
-
-    input_set_cursor_bounds(cursor_bounds);
-
-    renderer_resize(APP.renderer, width, height);
-}
-
-static void draw_window(EGLDisplay* egl_display, Window* window)
+static void draw_window(Renderer* renderer, EGLDisplay* egl_display, Window* window)
 {
     WMWindowParameters window_parameters = wm_compute_window_parameters(window);
 
     // Draw window border
-    renderer_draw_rectangle(APP.renderer,
+    renderer_draw_rectangle(renderer,
                             window_parameters.border_position,
                             window_parameters.border_size,
                             (Vector4) { 0.0f, 0.0f, 1.0f, 1.0f });
 
     // Draw title bar
-    renderer_draw_rectangle(APP.renderer,
+    renderer_draw_rectangle(renderer,
                             window_parameters.title_bar_position,
                             window_parameters.title_bar_size,
                             (Vector4) { 1.0f, 1.0f, 0.0f, 1.0f });
 
     // Draw close button
-    renderer_draw_rectangle(APP.renderer,
+    renderer_draw_rectangle(renderer,
                             window_parameters.close_button_position,
                             window_parameters.close_button_size,
                             (Vector4) { 1.0, 0.0f, 0.0f, 1.0f });
@@ -167,7 +142,7 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
     {
         Vector2 window_content_size = { window->width, window->height };
 
-        renderer_draw_rectangle(APP.renderer,
+        renderer_draw_rectangle(renderer,
                                 window_parameters.content_position,
                                 window_content_size,
                                 (Vector4) { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -196,7 +171,7 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
                                                                 window->dma_buf.width,
                                                                 window->dma_buf.height);
 
-            renderer_draw_texture_ex(APP.renderer,
+            renderer_draw_texture_ex(renderer,
                                      texture,
                                      window_parameters.content_position,
                                      window_content_size,
@@ -209,23 +184,23 @@ static void draw_window(EGLDisplay* egl_display, Window* window)
     }
 }
 
-void application_render(EGLDisplay* egl_display)
+void application_render(Renderer* renderer, EGLDisplay* egl_display)
 {
     (void)egl_display;
 
     gl(ClearColor, 0.8f, 0.8f, 0.8f, 1.0f);
     gl(Clear, GL_COLOR_BUFFER_BIT);
 
-    renderer_begin_drawing(APP.renderer);
+    renderer_begin_drawing(renderer);
 
     server_lock_windows(APP.server);
 
     for (size_t i = 0; i < server_get_window_count(APP.server); ++i) {
         Window* window = server_get_windows(APP.server)[i];
-        draw_window(egl_display, window);
+        draw_window(renderer, egl_display, window);
     }
 
-    renderer_draw_rectangle(APP.renderer,
+    renderer_draw_rectangle(renderer,
                             get_cursor_position(), (Vector2) { 5, 5 },
                             (Vector4) { 0.0f, 1.0f, 0.0f, 1.0f });
 

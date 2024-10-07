@@ -24,9 +24,9 @@ typedef struct {
 Renderer* renderer_create(int width, int height);
 void renderer_destroy(Renderer* renderer);
 
-void renderer_begin_drawing(Renderer* renderer);
+Vector2 renderer_get_screen_size(Renderer* renderer);
 
-void renderer_resize(Renderer* renderer, int width, int height);
+void renderer_begin_drawing(Renderer* renderer);
 
 void renderer_draw_triangle(Renderer* renderer,
                             Vector2 a, Vector2 b, Vector2 c,

@@ -16,20 +16,24 @@
 
 #include "application.h"
 #include "log.h"
+#include "renderer/renderer.h"
 
 bool should_quit = false;
+
+// Set only once. The same resolution is used
+// for all monitors.
+int screen_width = 0;
+int screen_height = 0;
 
 static int open_restricted(const char* path, int flags, void* user_data)
 {
     (void)user_data;
-
     return open(path, flags);
 }
 
 static void close_restricted(int fd, void* user_data)
 {
     (void)user_data;
-
     close(fd);
 }
 
@@ -44,12 +48,15 @@ static void initialize_gl(SRMConnector* connector, void* user_data)
 
     SRMConnectorMode* mode = srmConnectorGetCurrentMode(connector);
 
-    int width = srmConnectorModeGetWidth(mode);
-    int height = srmConnectorModeGetHeight(mode);
+    if (screen_width == 0)
+        screen_width = srmConnectorModeGetWidth(mode);
 
-    if (!application_init_graphics(width, height)) {
-        should_quit = true;
-    }
+    if (screen_height == 0)
+        screen_height = srmConnectorModeGetHeight(mode);
+
+    Renderer* renderer = renderer_create(screen_width, screen_height);
+    application_init_graphics(renderer);
+    srmConnectorSetUserData(connector, renderer);
 
     srmConnectorRepaint(connector);
 }
@@ -58,10 +65,12 @@ static void paint_gl(SRMConnector* connector, void* user_data)
 {
     (void)user_data;
 
+    Renderer* renderer = srmConnectorGetUserData(connector);
+
     SRMDevice* device = srmConnectorGetDevice(connector);
     EGLDisplay* egl_display = srmDeviceGetEGLDisplay(device);
 
-    application_render(egl_display);
+    application_render(renderer, egl_display);
 
     srmConnectorRepaint(connector);
 }
@@ -69,14 +78,6 @@ static void paint_gl(SRMConnector* connector, void* user_data)
 static void resize_gl(SRMConnector* connector, void* user_data)
 {
     (void)user_data;
-
-    SRMConnectorMode* mode = srmConnectorGetCurrentMode(connector);
-
-    int width = srmConnectorModeGetWidth(mode);
-    int height = srmConnectorModeGetHeight(mode);
-
-    application_resize(width, height);
-
     srmConnectorRepaint(connector);
 }
 
@@ -91,7 +92,8 @@ static void uninitialize_gl(SRMConnector* connector, void* user_data)
     (void)connector;
     (void)user_data;
 
-    application_destroy_graphics();
+    Renderer* renderer = srmConnectorGetUserData(connector);
+    renderer_destroy(renderer);
 }
 
 static SRMConnectorInterface connector_interface = {
